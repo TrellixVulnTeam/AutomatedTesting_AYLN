@@ -1,0 +1,11 @@
+#ifndef COMMONLIB_GLOBAL_H
+#define COMMONLIB_GLOBAL_H
+#include <QtCore/QtGlobal>
+
+#ifdef COMMONLIB_LIB
+#define COMMONLIB_EXPORT Q_DECL_EXPORT
+#else
+#define COMMONLIB_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif  // COMMONLIB_GLOBAL_H

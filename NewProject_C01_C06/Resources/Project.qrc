@@ -1,0 +1,48 @@
+<RCC>
+    <qresource prefix="/Debug">
+        <file>Debug/arrow_right.png</file>
+        <file>Debug/breakpoint.png</file>
+        <file>Debug/breakpoint_disabled.png</file>
+        <file>Debug/continue.png</file>
+        <file>Debug/jump.png</file>
+        <file>Debug/next.png</file>
+        <file>Debug/start.png</file>
+        <file>Debug/step.png</file>
+        <file>Debug/stop.png</file>
+        <file>Debug/init.png</file>
+        <file>Debug/reload.png</file>
+        <file>Debug/light_off.png</file>
+        <file>Debug/light_on.png</file>
+        <file>Debug/forward.png</file>
+        <file>Debug/last.png</file>
+        <file>Debug/home.png</file>
+        <file>Debug/nextt.png</file>
+        <file>Debug/previous.png</file>
+        <file>Debug/tab.png</file>
+        <file>Debug/btncheckoff.png</file>
+        <file>Debug/btncheckon.png</file>
+        <file>Debug/JCiT.png</file>
+        <file>Debug/dxd.png</file>
+    </qresource>
+    <qresource prefix="/Qss">
+        <file>Stylesheet/Mac.qss</file>
+        <file>Stylesheet/Win.qss</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>Icons/user.png</file>
+        <file>Icons/clearResult.png</file>
+        <file>MainUI/DUTRunSpinner.gif</file>
+        <file>MainUI/SingleUUTInfo.png</file>
+        <file>MainUI/logo.png</file>
+        <file>Icons/btn_casesensitive.png</file>
+        <file>Icons/btn_matchall.png</file>
+        <file>Icons/btn_next.png</file>
+        <file>Icons/btn_previous.png</file>
+        <file>Icons/splitter.png</file>
+        <file>MainUI/JCiT.png</file>
+        <file>icons/JCiT.ico</file>
+        <file>Icons/dxd.png</file>
+        <file>Icons/dxd.ico</file>
+        <file>MainUI/dxd.png</file>
+    </qresource>
+</RCC>

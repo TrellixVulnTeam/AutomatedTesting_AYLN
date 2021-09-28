@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><Configuration>
+	<ProjectName>X2155 Station</ProjectName>
+	<Version>V1.0.0</Version>
+	<Config>Cfg0001</Config>
+	<UnitCount>3</UnitCount>
+	<LogPath>D:/vault/JCiT/</LogPath>
+	<FlowCsvPath>[App]/Config/Testflow_DOE.csv</FlowCsvPath>
+	<SpecCsvPath>[App]/Config/TestSpec_DOE.csv</SpecCsvPath>
+	<PositionCsvPath>[App]/Config/Position.csv</PositionCsvPath>
+	<MachineID>MOS001</MachineID>
+	<MTCP>FALSE</MTCP>
+	<MES>FALSE</MES>
+	<Slot>1-3</Slot>
+	<Alpha>36000</Alpha>
+	<Beta>500</Beta>
+	<Gamma>500</Gamma>
+	<Xp>1250</Xp>
+	<Xs>5000</Xs>
+	<Y>5000</Y>
+	<Z>5000</Z>
+	<TimeStep>0.0000016</TimeStep>
+	<Device>
+		<Unit target="Uart" path="CB031" num="115200" ref="TEST_Uart41" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="CB032" num="115200" ref="TEST_Uart42" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="CB041" num="115200" ref="TEST_Uart51" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="CB042" num="115200" ref="TEST_Uart52" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="CB051" num="115200" ref="TEST_Uart61" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="CB052" num="115200" ref="TEST_Uart62" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="192.168.1.252" num="8800" ref="TEST_Socket4" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="192.168.1.251" num="8800" ref="TEST_Socket5" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="192.168.1.250" num="8800" ref="TEST_Socket6" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Group target="Uart" path="cu.usbserial-FIXMB" num="115200" ref="CTR_Uart" timeout="2" suffix="\r\n" exist="FALSE" Property="TRUE"/>
+		<Group target="Socket" path="127.0.0.1" num="6001" ref="CTR_Socket" timeout="2" suffix="[DONE]" exist="FALSE" Property="TRUE"/>
+	</Device>
+	<IsChoose count="6">
+        <Value>TRUE</Value>
+        <Value>TRUE</Value>
+        <Value>TRUE</Value>
+        <Value>TRUE</Value>
+        <Value>TRUE</Value>
+        <Value>TRUE</Value>
+	</IsChoose>
+	<GroupOrder count="11">
+		<Value>TSCR</Value>
+		<Value>Offset</Value>
+		<Value>Noise</Value>
+		<Value>C01</Value>
+		<Value>C02</Value>
+		<Value>C03</Value>
+		<Value>C04</Value>
+		<Value>C05</Value>
+		<Value>C06</Value>
+		<Value>POST</Value>
+		<Value>TSED</Value>
+	</GroupOrder>
+	<AngleAndVel>
+		<Item name="C01" angle="51" velcoty="7.93" />
+		<Item name="C02" angle="55.1" velcoty="8.37" />
+		<Item name="C03" angle="56.6" velcoty="8.52" />
+		<Item name="C04" angle="47.1" velcoty="7.48" />
+		<Item name="C05" angle="46" velcoty="7.34" />
+		<Item name="C06" angle="51" velcoty="7.93" />
+	</AngleAndVel>
+</Configuration>
+
