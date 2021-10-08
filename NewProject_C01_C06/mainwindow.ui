@@ -213,32 +213,6 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="1">
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="comboBox_TestMode">
           <property name="font">
@@ -259,6 +233,19 @@
            <number>10</number>
           </property>
          </widget>
+        </item>
+        <item row="2" column="1">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item row="3" column="1">
          <widget class="QPushButton" name="StartButton">
@@ -315,6 +302,19 @@ QPushButton:hover{
           </property>
           <property name="text">
            <string>TestMode:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="mtcpStatus">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="Resources/Project.qrc">:/MainUI/light_off.png</pixmap>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -516,15 +516,7 @@ QPushButton:hover{
     <property name="title">
      <string>Help</string>
     </property>
-    <widget class="QMenu" name="menuLanguages">
-     <property name="title">
-      <string>Languages</string>
-     </property>
-     <addaction name="actionCh"/>
-     <addaction name="actionEn"/>
-    </widget>
     <addaction name="actionAbout"/>
-    <addaction name="menuLanguages"/>
    </widget>
    <addaction name="menuusers"/>
    <addaction name="menutools"/>

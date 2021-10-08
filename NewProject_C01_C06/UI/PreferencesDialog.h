@@ -18,6 +18,9 @@ public:
     ~PreferencesDialog();
     void initPreferencesDialogFormConfig();
 
+signals:
+    void mtcpStatusChanged(bool status);
+
 private slots:
     void onOk();
     void onCancel();

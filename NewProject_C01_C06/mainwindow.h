@@ -32,6 +32,9 @@
 #include "AboutDialog.h"
 #include "LoadProfileDialog.h"
 #include "PreferencesDialog.h"
+#include "mtcp_module.h"
+
+using namespace MTcp;
 
 namespace Ui
 {
@@ -53,6 +56,7 @@ signals:
     void appExit();
     void stopLoopTestWhileError(int slot);
     void clickLanguageActionSignal(QTranslator& tran);
+    void mtcpConnectedStatus(bool status);
 
 protected:
     virtual void resizeEvent(QResizeEvent* event) override;
@@ -89,6 +93,9 @@ private slots:
     void onloginSuccess(const QString& userName, User::Authority authority);
     void onUpdateLogViewUI(const QString& logStr, int testUnit);
     void onLanguageTriggered(bool isChineseBtn);
+    void onMtcpStatusChanged(bool status);
+    void onMtcpConnectedStatus(bool status);
+    void onGetLotName(const QString& lotName, int& ret);
 
 private:
     void generateUnits(const int& UnitCount);
@@ -117,6 +124,7 @@ private:
     QProcess* m_commTool = NULL;
     LoadProfileDialog* m_loadProfileDialog = NULL;
     PreferencesDialog* m_preferencesDialog = NULL;
+    GENL* m_mtcp = NULL;
 
     QItemSelectionModel* theSelection;
     QList<Items*> testItemList;

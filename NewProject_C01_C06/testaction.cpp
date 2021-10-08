@@ -1316,6 +1316,16 @@ void TestAction::initTcpSocketForHandler()
                     projectID_ST = projectID_ST.replace("$", "");
                     trial_ST = infoArray[7];
                     trial_ST = trial_ST.replace("$", "");
+                    if (lotName_ST.toStdString() != ConfigParse::getInstance().getLotName()) {
+                        int ret = -1;
+                        emit getLotName(lotName_ST, ret);
+                        if (ret == 0) {
+                            ConfigParse::getInstance().setTestInfo(KLotName, lotName_ST.toStdString());
+                        } else {
+                            return;
+                        }
+                    }
+
                     emit updateUIInfo(opID_ST, lotName_ST, productionMode_ST, siteID_ST, projectID_ST);
                     emit unitStart(unitNum, sn_ST);
 

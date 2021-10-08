@@ -9,6 +9,7 @@
 #include <iostream>
 #include "LogHelper.h"
 #include "ConfigParse.h"
+#include "MtcpFileHelper.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -58,6 +59,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionLoadProfile, &QAction::triggered, this, &MainWindow::onLoadProfileAction);
     connect(ui->actionPerference, &QAction::triggered, this, &MainWindow::onPreferencesAction);
     connect(ui->actionCommunicationTool, &QAction::triggered, this, &MainWindow::ononCommunicationToolAction);
+    connect(this, &MainWindow::mtcpConnectedStatus, this, &MainWindow::onMtcpConnectedStatus);
+
+    m_mtcp = GENL::getInstance("mtcp");
+    onMtcpStatusChanged(ConfigParse::getInstance().getMtcp());
 
     m_loginDialog = new LoginDialog(this);
     connect(m_loginDialog, &LoginDialog::loginSuccessSignal, this, &MainWindow::onloginSuccess);
@@ -91,6 +96,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(testaction, &TestAction::unitStart, m_loopDialog, &LoopTestDialog::onTestStart);
         connect(testaction, &TestAction::stopTimer, m_loopDialog, &LoopTestDialog::onTestFinished);
         connect(testaction, &TestAction::stopLoopTestWhileError, m_loopDialog, &LoopTestDialog::stopLoopTestWhileError);
+        connect(testaction, &TestAction::getLotName, this, &MainWindow::onGetLotName);
         testaction->connectDevice();
         testactionList.append(testaction);
     }
@@ -657,8 +663,74 @@ void MainWindow::onPreferencesAction()
 {
     if (NULL == m_preferencesDialog) {
         m_preferencesDialog = new PreferencesDialog(this);
+        connect(m_preferencesDialog, &PreferencesDialog::mtcpStatusChanged, this, &MainWindow::onMtcpStatusChanged);
     }
     m_preferencesDialog->exec();
+}
+
+void MainWindow::onMtcpStatusChanged(bool status)
+{
+    if (status) {
+        if (!m_mtcp->isOpen()) {
+            if (ConfigParse::getInstance().getMtcpIP().empty() || ConfigParse::getInstance().getMtcpPort().empty()) {
+                QMessageBox::warning(this, "Connect Mtcp Failed", "Can't connect empty Ip or empty port.");
+                return;
+            } else {
+                int ret = m_mtcp->open(ConfigParse::getInstance().getMtcpIP(),
+                                       std::stoi(ConfigParse::getInstance().getMtcpPort()), 2000);
+                if (ret != 0) {
+                    emit mtcpConnectedStatus(false);
+                    QMessageBox::warning(this, "Connect MTCP Failed",
+                                         QString("ip: %1, port: %2")
+                                             .arg(QString::fromStdString(ConfigParse::getInstance().getMtcpIP()))
+                                             .arg(QString::fromStdString(ConfigParse::getInstance().getMtcpPort())));
+                } else {
+                    m_mtcp->setLogPath(ConfigParse::getInstance().getLogPath() + "MTCP");
+                    emit mtcpConnectedStatus(true);
+                }
+            }
+        }
+    } else {
+        m_mtcp->close();
+        emit mtcpConnectedStatus(false);
+    }
+}
+
+void MainWindow::onGetLotName(const QString& lotName, int& ret)
+{
+    if (ConfigParse::getInstance().getMtcp()) {
+        if (!m_mtcp->isOpen()) {
+            QMessageBox::warning(this, "Mtcp set lotName failed", "Mtcp was not connected.");
+            return;
+        }
+
+        try {
+            const QString lotEnd =
+                MtcpFileHelper::outputLotEnd(QString::fromStdString(ConfigParse::getInstance().getLotName()));
+            const char* ret = m_mtcp->SendGENL(lotEnd.toStdString(), GENL::DirectionType::REPORT);
+
+            const QString lotStart = MtcpFileHelper::outputLotStart(lotName);
+            ret = m_mtcp->SendGENL(lotStart.toStdString(), GENL::DirectionType::REPORT);
+            if (!QString::fromLocal8Bit(ret).isEmpty()) {
+                throw std::runtime_error(std::string(ret));
+            }
+            ret = 0;
+        }
+        catch (std::runtime_error& e) {
+            QMessageBox::warning(this, tr("Start Lot Failed"), QString::fromStdString(e.what()));
+        }
+    } else {
+        ret = 0;
+    }
+}
+
+void MainWindow::onMtcpConnectedStatus(bool status)
+{
+    if (status) {
+        ui->mtcpStatus->setPixmap(QPixmap(":/MainUI/light_on.png"));
+    } else {
+        ui->mtcpStatus->setPixmap(QPixmap(":/MainUI/light_off.png"));
+    }
 }
 
 void MainWindow::updatePermissions()

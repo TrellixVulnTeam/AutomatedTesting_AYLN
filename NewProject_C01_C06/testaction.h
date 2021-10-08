@@ -105,6 +105,7 @@ signals:
     void showInfo(const QString& msg);
     void stopLoopTestWhileError(int slot);
     void connectDevices(std::map<std::string, DeviceInfo>& devicMap, const QString& soltNum);
+    void getLotName(const QString& lotName, int& ret);
 
 public slots:
     void algoReleaseSystem();

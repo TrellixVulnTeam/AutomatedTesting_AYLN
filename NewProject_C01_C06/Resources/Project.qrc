@@ -44,5 +44,7 @@
         <file>Icons/dxd.png</file>
         <file>Icons/dxd.ico</file>
         <file>MainUI/dxd.png</file>
+        <file>MainUI/light_off.png</file>
+        <file>MainUI/light_on.png</file>
     </qresource>
 </RCC>

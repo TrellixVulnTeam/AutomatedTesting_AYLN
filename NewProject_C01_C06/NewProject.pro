@@ -176,8 +176,9 @@ win32{
     TM_APP_PATH ~= s,/,\\,g
 
     system(mkdir $$Config_DIR)
-    system(copy /y $$THRID_CONFIG\*.xml $$Config_DIR)
-    system(copy /y $$THRID_CONFIG\*.csv $$Config_DIR)
+#    system(copy /y $$THRID_CONFIG\*.xml $$Config_DIR)
+#    system(copy /y $$THRID_CONFIG\*.csv $$Config_DIR)
+    system(xcopy /y /e $$THRID_CONFIG $$Config_DIR)
 
     system(copy /y $$THRID_LIB_PATH\\$$TEST_MODE\\$$Mode\*.dll $$DEST_DIR)
     system(copy /y $$THRID_LIB_PATH\\$$TEST_MODE\\$$Mode\*.exe $$DEST_DIR)

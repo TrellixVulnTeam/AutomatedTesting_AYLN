@@ -81,8 +81,27 @@ bool PreferencesDialog::checkPreferencesSettingIsChange()
     }
 
     bool check = ui->MtcpCheckBox->isChecked();
+    text = ui->MtcpIPLineEdit->text();
+    if (text.toStdString() != ConfigParse::getInstance().getMtcpIP()) {
+        ConfigParse::getInstance().setTestInfo(KMtcpIP, text.toStdString());
+        isChange = true;
+        if (check) {
+            emit mtcpStatusChanged(check);
+        }
+    }
+
+    text = ui->MtcpPortLineEdit->text();
+    if (text.toStdString() != ConfigParse::getInstance().getMtcpPort()) {
+        ConfigParse::getInstance().setTestInfo(KMtcpPort, text.toStdString());
+        isChange = true;
+        if (check) {
+            emit mtcpStatusChanged(check);
+        }
+    }
+
     if (check != ConfigParse::getInstance().getMtcp()) {
         ConfigParse::getInstance().setTestInfo(KMtcp, check);
+        emit mtcpStatusChanged(check);
     }
 
     check = ui->MesCheckBox->isChecked();
@@ -109,6 +128,8 @@ void PreferencesDialog::initPreferencesDialogFormConfig()
     ui->YLineEdit->setText(QString::number(ConfigParse::getInstance().getY()));
     ui->ZLineEdit->setText(QString::number(ConfigParse::getInstance().getZ()));
     ui->TimeStepLineEdit->setText(QString::number(ConfigParse::getInstance().getTimeStep()));
+    ui->MtcpIPLineEdit->setText(QString::fromStdString(ConfigParse::getInstance().getMtcpIP()));
+    ui->MtcpPortLineEdit->setText(QString::fromStdString(ConfigParse::getInstance().getMtcpPort()));
 
     ui->MtcpCheckBox->setChecked(ConfigParse::getInstance().getMtcp());
     ui->MesCheckBox->setChecked(ConfigParse::getInstance().getMes());

@@ -1,0 +1,8 @@
+index,group,groupinfo,item,starttime,endtime,testtime,low,high,unit,value,result
+1,LOTS,,#TESTER_NAME,1/1/18 0:00,1/1/18 0:00,0.1,,,,Maestro_01,PASS
+2,LOTS,,#TESTER_ID,1/1/18 0:00,1/1/18 0:00,0.1,,,,1,PASS
+3,LOTS,,#LOT_NAME,1/1/18 0:00,1/1/18 0:00,0.1,,,,GK9060AK0L,PASS
+4,LOTS,,#LOT_SIZE,1/1/18 0:00,1/1/18 0:00,0.1,,,,100,PASS
+5,LOTS,,#OPERATOR,1/1/18 0:00,1/1/18 0:00,0.1,,,,OP,PASS
+6,LOTS,,#HANDLER_SW_VER,1/1/18 0:00,1/1/18 0:00,0.1,,,,v1.0,PASS
+7,LOTS,,#TEST_MODE,1/1/18 0:00,1/1/18 0:00,0.1,,,,T1,PASS
