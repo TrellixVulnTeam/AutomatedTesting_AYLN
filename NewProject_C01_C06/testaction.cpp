@@ -131,21 +131,12 @@ void TestAction::run()
             QString groupName = QString::fromStdString(CFG_PARSE.getGroupOrderItem(i));
             std::vector<Items*> tempFlowItemList = m_testFlowTool->getTestPlanItemMap()[groupName];
             if (groupName.contains("offset", Qt::CaseInsensitive)) {
-                if (rms == 0) {
-                    QFile aFile(lotFilePath);
-                    if (aFile.exists()) {
-                        if (aFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-
-                            QString rmsStr = QString::fromLatin1(aFile.readAll());
-                            rms = rmsStr.toDouble();
-                            aFile.close();
-                            MLOG_INFO(QString("Continue %1, Read rms %2.").arg(groupName).arg(rmsStr));
-                            continue;
-                        }
-                    }
-                } else {
-                    MLOG_INFO(QString("Continue %1").arg(groupName));
+                if (CFG_PARSE.getLotName() == lotName_ST.toStdString()) {
+                    rms = CFG_PARSE.getRms();
+                    MLOG_INFO(QString("Continue %1, Read rms %2.").arg(groupName).arg(rms));
                     continue;
+                } else {
+                    CFG_PARSE.setTestInfo(KLotName, lotName_ST.toStdString());
                 }
             }
 
@@ -504,14 +495,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
 
                 if (tempItem->Group == "Offset") {
                     pthis->rms = sqrt(sum / (count * 1.0));
-                    QFile aFile(pthis->lotFilePath);
-                    if (aFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                        QByteArray rmsStr = QString::number(pthis->rms).toLatin1();
-                        aFile.write(rmsStr);
-                        pthis->MLOG_INFO(
-                            QString("Write rms %1 to %2").arg(QString::number(pthis->rms)).arg(pthis->lotFilePath));
-                        aFile.close();
-                    }
+                    CFG_PARSE.setTestInfo(KRMS, pthis->rms);
                 }
 
                 pthis->writeContentWithPath(pthis->rawDataPath, pthis->rawDataFileName, fileStr);
@@ -1320,7 +1304,6 @@ void TestAction::initTcpSocketForHandler()
                         int ret = -1;
                         emit getLotName(lotName_ST, ret);
                         if (ret == 0) {
-                            CFG_PARSE.setTestInfo(KLotName, lotName_ST.toStdString());
                         } else {
                             return;
                         }

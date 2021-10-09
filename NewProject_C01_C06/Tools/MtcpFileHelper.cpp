@@ -8,6 +8,8 @@
 #include <QDir>
 #include <QApplication>
 
+std::mutex MtcpFileHelper::mtcpFileMutex;
+
 const QString K_CONFIG = "/Config/";
 const QString K_BACKUP = "/Config/Backup/";
 
@@ -55,6 +57,7 @@ bool MtcpFileHelper::fileChecksum(const QString filePath, MTCP_FILE_TYPE type)
 
 const QMap<QString, QString> MtcpFileHelper::inputBuildConfig(bool retry)
 {
+    std::unique_lock<std::mutex> lock(mtcpFileMutex);
     const QString TMPath = QApplication::applicationDirPath();
     try {
         QFile file(TMPath + K_CONFIG + buildConfig);
@@ -76,8 +79,9 @@ const QMap<QString, QString> MtcpFileHelper::inputBuildConfig(bool retry)
         return bulidConfigMap;
     }
     catch (std::runtime_error& e) {
+        fileChecksum(TMPath + K_CONFIG + buildConfig, M_CONFIG);
         if (retry) {
-            fileChecksum(TMPath + K_CONFIG + buildConfig, M_CONFIG);
+            lock.unlock();
             inputBuildConfig(false);
         } else {
             throw e;
@@ -87,6 +91,7 @@ const QMap<QString, QString> MtcpFileHelper::inputBuildConfig(bool retry)
 
 const QString MtcpFileHelper::inputCurrLotName(bool retry)
 {
+    std::unique_lock<std::mutex> lock(mtcpFileMutex);
     const QString TMPath = QApplication::applicationDirPath();
     try {
         QFile file(TMPath + K_CONFIG + lotStartFile);
@@ -110,8 +115,9 @@ const QString MtcpFileHelper::inputCurrLotName(bool retry)
         return csvline.at(10);
     }
     catch (std::runtime_error& e) {
+        fileChecksum(TMPath + K_CONFIG + lotStartFile, M_START);
         if (retry) {
-            fileChecksum(TMPath + K_CONFIG + lotStartFile, M_START);
+            lock.unlock();
             inputCurrLotName(false);
         } else {
             throw e;
@@ -121,6 +127,7 @@ const QString MtcpFileHelper::inputCurrLotName(bool retry)
 
 const QString MtcpFileHelper::outputLotStart(const QString& lotName, bool retry)
 {
+    std::unique_lock<std::mutex> lock(mtcpFileMutex);
     const QString TMPath = QApplication::applicationDirPath();
     try {
         QFile file(TMPath + K_CONFIG + lotStartFile);
@@ -150,8 +157,9 @@ const QString MtcpFileHelper::outputLotStart(const QString& lotName, bool retry)
         return TMPath + K_CONFIG + lotStartFile;
     }
     catch (std::runtime_error& e) {
+        fileChecksum(TMPath + K_CONFIG + lotStartFile, M_START);
         if (retry) {
-            fileChecksum(TMPath + K_CONFIG + lotStartFile, M_START);
+            lock.unlock();
             outputLotStart(lotName, false);
         } else {
             throw e;
@@ -161,6 +169,7 @@ const QString MtcpFileHelper::outputLotStart(const QString& lotName, bool retry)
 
 const QString MtcpFileHelper::outputLotEnd(const QString& lotName, bool retry)
 {
+    std::unique_lock<std::mutex> lock(mtcpFileMutex);
     const QString TMPath = QApplication::applicationDirPath();
     try {
         QFile file(TMPath + K_CONFIG + lotEndFile);
@@ -190,8 +199,9 @@ const QString MtcpFileHelper::outputLotEnd(const QString& lotName, bool retry)
         return TMPath + K_CONFIG + lotEndFile;
     }
     catch (std::runtime_error& e) {
+        fileChecksum(TMPath + K_CONFIG + lotEndFile, M_END);
         if (retry) {
-            fileChecksum(TMPath + K_CONFIG + lotEndFile, M_END);
+            lock.unlock();
             outputLotEnd(lotName, false);
         } else {
             throw e;
@@ -202,6 +212,7 @@ const QString MtcpFileHelper::outputLotEnd(const QString& lotName, bool retry)
 const QString MtcpFileHelper::outputPivotRequest(const QString& sn, const QString& lotName, const QString& version,
                                                  bool retry)
 {
+    std::unique_lock<std::mutex> lock(mtcpFileMutex);
     const QString TMPath = QApplication::applicationDirPath();
     try {
         QFile file(TMPath + K_CONFIG + pivotRequest);
@@ -255,8 +266,9 @@ const QString MtcpFileHelper::outputPivotRequest(const QString& sn, const QStrin
         return TMPath + K_CONFIG + pivotRequest;
     }
     catch (std::runtime_error& e) {
+        fileChecksum(TMPath + K_CONFIG + pivotRequest, M_PIVOT);
         if (retry) {
-            fileChecksum(TMPath + K_CONFIG + pivotRequest, M_PIVOT);
+            lock.unlock();
             outputPivotRequest(sn, lotName, version, false);
         } else {
             throw e;

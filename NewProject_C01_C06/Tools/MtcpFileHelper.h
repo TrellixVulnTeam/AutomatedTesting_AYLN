@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <mutex>
 
 enum MTCP_FILE_TYPE
 {
@@ -25,6 +26,9 @@ public:
                                             bool retry = true);
 
     static bool fileChecksum(const QString filePath, MTCP_FILE_TYPE type = M_START);
+
+private:
+    static std::mutex mtcpFileMutex;
 };
 
 #endif  // MTCPFILEHELPER_H

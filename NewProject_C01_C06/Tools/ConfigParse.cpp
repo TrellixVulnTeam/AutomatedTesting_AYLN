@@ -75,6 +75,9 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
             m_mtcpPort = _node.Value<std::string>();
         }
 
+        _node = configurationNode.Child(KRMS);
+        m_rms = _node.Value<double>();
+
         LOG_INFO("");
         LOG_INFO("[Main] ***********************");
         LOG_INFO("[Main] Config xml path: %s", m_pathOfUIConf.c_str());
@@ -86,6 +89,7 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         LOG_INFO("[Main] SpecCsvPath: %s", m_specCsvPath.c_str());
         LOG_INFO("[Main] Position: %s", m_positionCsvPath.c_str());
         LOG_INFO("[Main] LotName: %s", m_lotName.c_str());
+        LOG_INFO("[Main] RMS: %f", m_rms);
 
         XmlNode device = configurationNode.Child(KDevice);
         if (device.isValid()) {
@@ -280,6 +284,9 @@ void ConfigParse::setTestInfo(const std::string& node, const double value)
         if (node == KTimeStep) {
             m_timeStep = value;
             LOG_INFO("[Main] Change TimeStep to: %.7f", m_unitCount);
+        } else if (node == KRMS) {
+            m_rms = value;
+            LOG_INFO("[Main] Change RMS to: %f", m_rms);
         }
     } else {
         procError(KConfiguration);

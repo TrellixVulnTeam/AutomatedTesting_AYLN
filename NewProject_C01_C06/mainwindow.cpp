@@ -286,26 +286,24 @@ void MainWindow::onUnitStart(qint16 slot, const QString& sn, const std::string& 
                                                                QString::fromStdString(CFG_PARSE.getVersion()));
                         const char* ret =
                             m_mtcp->SendGENL(pivotRequest.toStdString(), DynamicMtcp::DirectionType::REQUEST);
-                        // todo need release
-                        //                        if (!QString::fromLocal8Bit(ret).isEmpty()) {
-                        //                            QMessageBox::warning(this, tr("Set MTCP REQUEST Failed"),
-                        //                            QString::fromLocal8Bit(ret)); uForm->onTestEnd(TEST_FAIL); return;
-                        //                        }
+                        if (!QString::fromLocal8Bit(ret).isEmpty()) {
+                            QMessageBox::warning(this, tr("Set MTCP REQUEST Failed"), QString::fromLocal8Bit(ret));
+                            uForm->onTestEnd(TEST_FAIL);
+                            return;
+                        }
                     }
                     catch (std::runtime_error& e) {
-                        // todo need release
-                        //                        QMessageBox::warning(this, tr("Set MTCP Failed"), e.what());
-                        //                        uForm->onTestEnd(TEST_FAIL);
-                        //                        return;
+                        QMessageBox::warning(this, tr("Set MTCP Failed"), e.what());
+                        uForm->onTestEnd(TEST_FAIL);
+                        return;
                     }
                     catch (MTCP_ProtocolException& e) {
-                        // todo need release
-                        //                        QMessageBox::warning(this, tr("Set MTCP Failed"),
-                        //                                             tr("errorCode: %1, errorStr: %2")
-                        //                                                 .arg(e.getErrCode())
-                        //                                                 .arg(QString::fromStdString(e.getErrStr())));
-                        //                        uForm->onTestEnd(TEST_FAIL);
-                        //                        return;
+                        QMessageBox::warning(this, tr("Set MTCP Failed"),
+                                             tr("errorCode: %1, errorStr: %2")
+                                                 .arg(e.getErrCode())
+                                                 .arg(QString::fromStdString(e.getErrStr())));
+                        uForm->onTestEnd(TEST_FAIL);
+                        return;
                     }
                 }
 
@@ -735,13 +733,22 @@ void MainWindow::onMtcpStatusChanged(bool status)
                 int ret = m_mtcp->open(CFG_PARSE.getMtcpIP(), std::stoi(CFG_PARSE.getMtcpPort()), 2000);
                 if (ret != 0) {
                     std::shared_ptr<std::thread> _thread = std::shared_ptr<std::thread>(new std::thread([&]() {
-                        while (!m_mtcp->isOpen() && !isExit) {
+                        while (!isExit && !m_mtcp->isOpen() && CFG_PARSE.getMtcp()) {
                             emit mtcpConnectedStatus(1);
                             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                             emit mtcpConnectedStatus(2);
-                            m_mtcp->open(CFG_PARSE.getMtcpIP(), std::stoi(CFG_PARSE.getMtcpPort()), 1000);
+                            if (CFG_PARSE.getMtcp() && !CFG_PARSE.getMtcpIP().empty()
+                                && !CFG_PARSE.getMtcpPort().empty())
+                                m_mtcp->open(CFG_PARSE.getMtcpIP(), std::stoi(CFG_PARSE.getMtcpPort()), 1000);
+                            else
+                                break;
                         }
-                        emit mtcpConnectedStatus(0);
+                        if (m_mtcp->isOpen()) {
+                            m_mtcp->setLogPath(CFG_PARSE.getLogPath() + "MtcpLog/MTCP_Log");
+                            emit mtcpConnectedStatus(0);
+                        } else {
+                            emit mtcpConnectedStatus(1);
+                        }
                     }));
                     _thread->detach();
 
@@ -756,7 +763,9 @@ void MainWindow::onMtcpStatusChanged(bool status)
             }
         }
     } else {
-        m_mtcp->close();
+        if (NULL != m_mtcp && m_mtcp->isOpen()) {
+            m_mtcp->close();
+        }
         emit mtcpConnectedStatus(1);
     }
 }
@@ -779,8 +788,7 @@ void MainWindow::onGetLotName(const QString& lotName, int& ret)
             const QString lotStart = MtcpFileHelper::outputLotStart(lotName);
             res = m_mtcp->SendGENL(lotStart.toStdString(), DynamicMtcp::DirectionType::REPORT);
             if (!QString::fromLocal8Bit(res).isEmpty()) {
-                // todo need release
-                //                throw std::runtime_error(std::string(ret));
+                throw std::runtime_error(std::string(res));
             }
             std::string lotStartFileSavePath = CFG_PARSE.getLogPath() + "MtcpLog/" + lotName.toStdString();
             Util::MakeNDir(lotStartFileSavePath);

@@ -81,20 +81,20 @@ bool PreferencesDialog::checkPreferencesSettingIsChange()
     }
 
     bool check = ui->MtcpCheckBox->isChecked();
-    text = ui->MtcpIPLineEdit->text();
-    if (text.toStdString() != CFG_PARSE.getMtcpIP()) {
-        CFG_PARSE.setTestInfo(KMtcpIP, text.toStdString());
+    QString ip = ui->MtcpIPLineEdit->text();
+    QString port = ui->MtcpPortLineEdit->text();
+    if (ip.toStdString() != CFG_PARSE.getMtcpIP()) {
+        CFG_PARSE.setTestInfo(KMtcpIP, ip.toStdString());
         isChange = true;
-        if (check) {
+        if (check && !CFG_PARSE.getMtcpPort().empty()) {
             emit mtcpStatusChanged(check);
         }
     }
 
-    text = ui->MtcpPortLineEdit->text();
-    if (text.toStdString() != CFG_PARSE.getMtcpPort()) {
-        CFG_PARSE.setTestInfo(KMtcpPort, text.toStdString());
+    if (port.toStdString() != CFG_PARSE.getMtcpPort()) {
+        CFG_PARSE.setTestInfo(KMtcpPort, port.toStdString());
         isChange = true;
-        if (check) {
+        if (check && !CFG_PARSE.getMtcpIP().empty()) {
             emit mtcpStatusChanged(check);
         }
     }

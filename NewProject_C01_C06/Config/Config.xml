@@ -5,6 +5,7 @@
 	<UnitCount>3</UnitCount>
 	<LogPath>D:/vault/JCiT/</LogPath>
 	<LotName>Lot999</LotName>
+	<RMS>0.0</RMS>
 	<FlowCsvPath>[App]/Config/Testflow_DOE.csv</FlowCsvPath>
 	<SpecCsvPath>[App]/Config/TestSpec_DOE.csv</SpecCsvPath>
 	<PositionCsvPath>[App]/Config/Position.csv</PositionCsvPath>

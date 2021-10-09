@@ -46,6 +46,7 @@ static std::string KMtcp = "MTCP";
 static std::string KMtcpIP = "MtcpIP";
 static std::string KMtcpPort = "MtcpPort";
 static std::string KLotName = "LotName";
+static std::string KRMS = "RMS";
 static std::string KMes = "MES";
 
 struct DeviceInfo
@@ -304,6 +305,11 @@ public:
         return m_lotName;
     }
 
+    double getRms() const
+    {
+        return m_rms;
+    }
+
 private:
     void procError(const std::string& nodeStr);
 
@@ -363,6 +369,7 @@ private:
     int m_y = 5000;
     int m_z = 5000;
     double m_timeStep = 0.0000016;
+    double m_rms = 0.0;
 
     bool m_Mtcp = false;
     bool m_Mes = false;
