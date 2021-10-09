@@ -30,7 +30,6 @@ DEFINES += COMMONLIB_LIB
 include($$PWD/Devices/Devices.pri)
 include($$PWD/Tools/Tools.pri)
 include($$PWD/UI/UI.pri)
-include($$PWD/MTCPProtocol/MTCPProtocol.pri)
 include($$PWD/Algo/Algo.pri)
 include($$PWD/User/User.pri)
 
@@ -143,12 +142,14 @@ win32{
         LIBS += -L$$LINK_LIBRARY_PATH/Debug/  \
                       -L$$TM_APP_PATH/$$TEST_MODE/Debug
         LIBS += -llog4cplusUD
+        LIBS += -lMtcpProtocol
         Mode = debug
     }else{
         DESTDIR = $$TM_APP_PATH/$$TEST_MODE/Release
         LIBS += -L$$LINK_LIBRARY_PATH/Release/ \
                        -L$$TM_APP_PATH/$$TEST_MODE/Release
         LIBS += -llog4cplusU
+        LIBS += -lMtcpProtocol
         Mode = release
     }
 
@@ -159,6 +160,7 @@ win32{
     LIBS += -L$$LINK_LIBRARY_PATH/Commom/
     INCLUDEPATH += $$LIBS_PATH/include/
     INCLUDEPATH += $$LIBS_PATH/include/Algo/
+    INCLUDEPATH += $$LIBS_PATH/include/Mtcp/
 
     DEST_DIR = $$DESTDIR
     DEST_DIR ~= s,/,\\,g

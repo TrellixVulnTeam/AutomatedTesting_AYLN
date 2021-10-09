@@ -2,7 +2,7 @@
 #include "logHandle.h"
 #include "time.h"
 #include "windows.h"
-#include "Util.h"
+#include "UtilDll.h"
 
 std::ofstream cLogHandle::f;
 std::string cLogHandle::g_date;
@@ -13,7 +13,7 @@ std::string GetDate()
     SYSTEMTIME date;
     GetLocalTime(&date);
     char buf[128];
-    sprintf(buf, "_%u_%u_%u", date.wYear, date.wMonth, date.wDay);
+    sprintf_s(buf, "_%u_%u_%u", date.wYear, date.wMonth, date.wDay);
     return std::string(buf);
 }
 
@@ -26,7 +26,7 @@ int cLogHandle::InitLog(std::string path)
     g_date = s;
     path += s;
     path += std::string(".log");
-    Util::MakeNDir(path);
+	UtilDll::MakeNDir(path);
 
     if (!cLogHandle::f.is_open()) {
         cLogHandle::f.open(path, std::ios::out | std::ios::app);
@@ -81,12 +81,12 @@ int cLogHandle::printer(bool timestamp, const char* fmt, ...)
     va_list arg_ptr;
     va_start(arg_ptr, fmt);
     char printf_buf[1024];
-    vsprintf(printf_buf, fmt, arg_ptr);
+    vsprintf_s(printf_buf, fmt, arg_ptr);
     puts(printf_buf);
 
     char buf[1028];
     memset(buf, 0, 1028);
-    vsprintf(buf, fmt, arg_ptr);
+    vsprintf_s(buf, fmt, arg_ptr);
     str += std::string(buf);
     cLogHandle::LogMsg(str, timestamp);
     va_end(arg_ptr);

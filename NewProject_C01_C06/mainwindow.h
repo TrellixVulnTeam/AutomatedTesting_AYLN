@@ -32,9 +32,7 @@
 #include "AboutDialog.h"
 #include "LoadProfileDialog.h"
 #include "PreferencesDialog.h"
-#include "mtcp_module.h"
-
-using namespace MTcp;
+#include "MtcpProtocol.h"
 
 namespace Ui
 {
@@ -125,7 +123,7 @@ private:
     QProcess* m_commTool = NULL;
     LoadProfileDialog* m_loadProfileDialog = NULL;
     PreferencesDialog* m_preferencesDialog = NULL;
-    GENL* m_mtcp = NULL;
+    DynamicMtcp* m_mtcp = NULL;
 
     QItemSelectionModel* theSelection;
     QList<Items*> testItemList;

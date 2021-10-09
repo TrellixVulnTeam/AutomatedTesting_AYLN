@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCommunicationTool, &QAction::triggered, this, &MainWindow::ononCommunicationToolAction);
     connect(this, &MainWindow::mtcpConnectedStatus, this, &MainWindow::onMtcpConnectedStatus);
 
-    m_mtcp = GENL::getInstance("mtcp");
+    m_mtcp = CreateMtcpHandle("mtcp");
     onMtcpStatusChanged(CFG_PARSE.getMtcp());
 
     m_loginDialog = new LoginDialog(this);
@@ -274,7 +274,7 @@ void MainWindow::onUnitStart(qint16 slot, const QString& sn, const std::string& 
                     pivotRequest =
                         MtcpFileHelper::outputPivotRequest(sn, QString::fromStdString(CFG_PARSE.getLotName()),
                                                            QString::fromStdString(CFG_PARSE.getVersion()));
-                    const char* ret = m_mtcp->SendGENL(pivotRequest.toStdString(), GENL::DirectionType::REQUEST);
+                    const char* ret = m_mtcp->SendGENL(pivotRequest.toStdString(), DynamicMtcp::DirectionType::REQUEST);
                     if (!QString::fromLocal8Bit(ret).isEmpty()) {
                         throw std::runtime_error("MTCP Fail.");
                     }
@@ -284,7 +284,8 @@ void MainWindow::onUnitStart(qint16 slot, const QString& sn, const std::string& 
                         pivotRequest =
                             MtcpFileHelper::outputPivotRequest(sn, QString::fromStdString(CFG_PARSE.getLotName()),
                                                                QString::fromStdString(CFG_PARSE.getVersion()));
-                        const char* ret = m_mtcp->SendGENL(pivotRequest.toStdString(), GENL::DirectionType::REQUEST);
+                        const char* ret =
+                            m_mtcp->SendGENL(pivotRequest.toStdString(), DynamicMtcp::DirectionType::REQUEST);
                         // todo need release
                         //                        if (!QString::fromLocal8Bit(ret).isEmpty()) {
                         //                            QMessageBox::warning(this, tr("Set MTCP REQUEST Failed"),
@@ -770,13 +771,13 @@ void MainWindow::onGetLotName(const QString& lotName, int& ret)
 
         try {
             const QString lotEnd = MtcpFileHelper::outputLotEnd(QString::fromStdString(CFG_PARSE.getLotName()));
-            const char* res = m_mtcp->SendGENL(lotEnd.toStdString(), GENL::DirectionType::REPORT);
+            const char* res = m_mtcp->SendGENL(lotEnd.toStdString(), DynamicMtcp::DirectionType::REPORT);
             std::string lotEndFileSavePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName();
             Util::MakeNDir(lotEndFileSavePath);
             QFile::copy(lotEnd, QString::fromStdString(lotEndFileSavePath) + "/LotEnd.csv");
 
             const QString lotStart = MtcpFileHelper::outputLotStart(lotName);
-            res = m_mtcp->SendGENL(lotStart.toStdString(), GENL::DirectionType::REPORT);
+            res = m_mtcp->SendGENL(lotStart.toStdString(), DynamicMtcp::DirectionType::REPORT);
             if (!QString::fromLocal8Bit(res).isEmpty()) {
                 // todo need release
                 //                throw std::runtime_error(std::string(ret));
@@ -805,7 +806,7 @@ void MainWindow::onSavePivotFile(const QString& path, int& ret)
         std::string fl = Util::GetFilePath(path.toStdString());
         m_mtcp->setTestCSVPath(fl + "/PivotReport_Return.csv");
         try {
-            const char* res = m_mtcp->SendGENL(path.toStdString(), GENL::DirectionType::REPORT);
+            const char* res = m_mtcp->SendGENL(path.toStdString(), DynamicMtcp::DirectionType::REPORT);
             if (!QString::fromLocal8Bit(res).isEmpty()) {
                 throw std::runtime_error(std::string(res));
             }
@@ -923,6 +924,7 @@ void MainWindow::onLanguageTriggered(bool isChineseBtn)
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     isExit = true;
+    m_mtcp->destroy();
     dcReleaseModule();
     dcReleaseSystem();
     QMainWindow::closeEvent(event);

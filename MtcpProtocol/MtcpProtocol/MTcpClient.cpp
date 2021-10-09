@@ -1,9 +1,12 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "MTcpClient.h"
 #include "logHandle.h"
 
 #include <Windows.h>
 #include <iostream>
 #include <stdio.h>
+//#include <Ws2tcpip.h>
+
 
 #pragma comment(lib, "wsock32.lib")
 
@@ -58,6 +61,7 @@ int MTcpClient::Connect(const char* szSvrIp, int port, int timeout)
     struct sockaddr_in ServerAddr;
     ServerAddr.sin_family = AF_INET;
     ServerAddr.sin_addr.s_addr = inet_addr(szSvrIp);
+	//InetPton(AF_INET, TEXT(std::string("ss")), &ServerAddr.sin_addr.s_addr);
     ServerAddr.sin_port = htons(port);
     memset(ServerAddr.sin_zero, 0x00, 8);
 
