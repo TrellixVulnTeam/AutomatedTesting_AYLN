@@ -1,5 +1,4 @@
 #include "tcpsockettool.h"
-#include <QThread>
 #include "LogHelper.h"
 #include "ml_file.h"
 #include "filetool.h"

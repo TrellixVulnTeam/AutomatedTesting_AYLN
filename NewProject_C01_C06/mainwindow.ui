@@ -13,7 +13,13 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,12">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="2,8,4,2">
@@ -213,6 +219,19 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
+        <item row="2" column="1">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="comboBox_TestMode">
           <property name="font">
@@ -233,19 +252,6 @@
            <number>10</number>
           </property>
          </widget>
-        </item>
-        <item row="2" column="1">
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item row="3" column="1">
          <widget class="QPushButton" name="StartButton">
@@ -306,17 +312,17 @@ QPushButton:hover{
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLabel" name="mtcpStatus">
-          <property name="text">
-           <string/>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <property name="pixmap">
-           <pixmap resource="Resources/Project.qrc">:/MainUI/light_off.png</pixmap>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -334,6 +340,9 @@ QPushButton:hover{
        <font>
         <family>Arial</family>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
       </property>
       <property name="currentIndex">
        <number>1</number>
@@ -354,7 +363,7 @@ QPushButton:hover{
              <x>0</x>
              <y>0</y>
              <width>1260</width>
-             <height>640</height>
+             <height>642</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_5">
@@ -499,8 +508,8 @@ QPushButton:hover{
      <string>Users</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionUserManager"/>
     <addaction name="actionPerference"/>
+    <addaction name="actionUserManager"/>
     <addaction name="actionLogin"/>
    </widget>
    <widget class="QMenu" name="menutools">
@@ -522,65 +531,6 @@ QPushButton:hover{
    <addaction name="menutools"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionhhhhh">
-   <property name="text">
-    <string>打开文件</string>
-   </property>
-  </action>
-  <action name="action_2">
-   <property name="text">
-    <string>中国</string>
-   </property>
-  </action>
-  <action name="actionTE">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/NewPredix/TestSequence_All.json</normaloff>:/NewPredix/TestSequence_All.json</iconset>
-   </property>
-   <property name="text">
-    <string>OP</string>
-   </property>
-  </action>
-  <action name="actionTE_2">
-   <property name="text">
-    <string>TE</string>
-   </property>
-  </action>
-  <action name="actionEngineer">
-   <property name="text">
-    <string>Engineer</string>
-   </property>
-  </action>
-  <action name="actionTE_3">
-   <property name="text">
-    <string>TE</string>
-   </property>
-  </action>
-  <action name="actionOP">
-   <property name="text">
-    <string>OP</string>
-   </property>
-  </action>
-  <action name="actionSW">
-   <property name="text">
-    <string>SW</string>
-   </property>
-  </action>
-  <action name="action_OP">
-   <property name="text">
-    <string>操作员</string>
-   </property>
-  </action>
-  <action name="action_SW">
-   <property name="text">
-    <string>工程师</string>
-   </property>
-  </action>
-  <action name="action_man">
-   <property name="text">
-    <string>管理员</string>
-   </property>
-  </action>
   <action name="actionLoadProfile">
    <property name="text">
     <string>LoadProfile</string>
@@ -620,32 +570,6 @@ QPushButton:hover{
   <action name="actionCommunicationTool">
    <property name="text">
     <string>CommunicationTool</string>
-   </property>
-  </action>
-  <action name="actionChinese">
-   <property name="text">
-    <string>Chinese</string>
-   </property>
-  </action>
-  <action name="actionEnglish">
-   <property name="text">
-    <string>English</string>
-   </property>
-  </action>
-  <action name="actionCh">
-   <property name="text">
-    <string>Chinese</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionEn">
-   <property name="text">
-    <string>English</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+E</string>
    </property>
   </action>
  </widget>

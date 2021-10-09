@@ -11,6 +11,8 @@
 
 #include "XmlHelper.h"
 
+#define CFG_PARSE ConfigParse::getInstance()
+
 static std::string KConfiguration = "Configuration";
 static std::string KDevice = "Device";
 static std::string KUnit = "Unit";
@@ -41,6 +43,9 @@ static std::string KSpecCsvPath = "SpecCsvPath";
 static std::string KPositionCsvPath = "PositionCsvPath";
 
 static std::string KMtcp = "MTCP";
+static std::string KMtcpIP = "MtcpIP";
+static std::string KMtcpPort = "MtcpPort";
+static std::string KLotName = "LotName";
 static std::string KMes = "MES";
 
 struct DeviceInfo
@@ -284,6 +289,21 @@ public:
         return m_config;
     }
 
+    std::string getMtcpIP() const
+    {
+        return m_mtcpIP;
+    }
+
+    std::string getMtcpPort() const
+    {
+        return m_mtcpPort;
+    }
+
+    std::string getLotName() const
+    {
+        return m_lotName;
+    }
+
 private:
     void procError(const std::string& nodeStr);
 
@@ -357,6 +377,9 @@ private:
     std::string m_specCsvPath = "";
     std::string m_positionCsvPath = "";
     std::string m_pathOfUIConf = "";
+    std::string m_mtcpIP = "";
+    std::string m_mtcpPort = "";
+    std::string m_lotName = "";
     std::vector<bool> m_chooseVec;
     std::vector<std::string> m_groupOrderVec;
     std::map<std::string, DeviceInfo> m_unitDevicesMap;

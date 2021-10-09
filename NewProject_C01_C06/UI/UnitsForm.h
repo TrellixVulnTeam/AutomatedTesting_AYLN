@@ -62,7 +62,7 @@ public slots:
 signals:
     void testStart(const UNIT_INFO& info, const QString& sn);
     void doubleMouseClick(qint16 slot);
-    void singleStart(qint16 slot, const QString& sn);
+    void singleStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
     void originBtnClicked();
 
 private slots:

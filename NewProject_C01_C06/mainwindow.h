@@ -56,7 +56,7 @@ signals:
     void appExit();
     void stopLoopTestWhileError(int slot);
     void clickLanguageActionSignal(QTranslator& tran);
-    void mtcpConnectedStatus(bool status);
+    void mtcpConnectedStatus(int status);
 
 protected:
     virtual void resizeEvent(QResizeEvent* event) override;
@@ -79,7 +79,7 @@ private slots:
     void on_mainBtn_clicked();
     void onStartAllTest(const QList<QString>& list);
     void onSingleStart(qint16 slot, const QString& sn);
-    void onUnitStart(qint16 slot, const QString& sn);
+    void onUnitStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
 
     void onUpdateUIInfo(const QString& opID, const QString& lotName, const QString& productionMode,
                         const QString& siteID, QString& projectID);
@@ -94,8 +94,9 @@ private slots:
     void onUpdateLogViewUI(const QString& logStr, int testUnit);
     void onLanguageTriggered(bool isChineseBtn);
     void onMtcpStatusChanged(bool status);
-    void onMtcpConnectedStatus(bool status);
+    void onMtcpConnectedStatus(int status);
     void onGetLotName(const QString& lotName, int& ret);
+    void onSavePivotFile(const QString& path, int& ret);
 
 private:
     void generateUnits(const int& UnitCount);
@@ -137,6 +138,7 @@ private:
     int tempRowIndex;
     int testModeIndex = 0;
     bool ishandlerConnected = false;
+    bool isExit = false;
 
     QString itemSn;
 

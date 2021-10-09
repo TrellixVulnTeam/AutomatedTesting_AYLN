@@ -10,7 +10,7 @@ LoopTestDialog::LoopTestDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Lo
     setWindowTitle(tr("Loop Test"));
     ui->unitLoopLayout->setContentsMargins(10, 10, 10, 10);
     ui->unitLoopLayout->setSpacing(10);
-    for (int i(0); i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i(0); i < CFG_PARSE.getUnitCount(); i++) {
         LoopTestWidget* form = new LoopTestWidget(this, i);
         ui->unitLoopLayout->addWidget(form, i, 0);
         connect(form, &LoopTestWidget::loopStart, this, &LoopTestDialog::loopStart);
@@ -25,7 +25,7 @@ LoopTestDialog::LoopTestDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Lo
 void LoopTestDialog::closeEvent(QCloseEvent* evt)
 {
     bool loopFlag = false;
-    for (int i(0); i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i(0); i < CFG_PARSE.getUnitCount(); i++) {
         LoopTestWidget* form = m_loopWs[i];
         loopFlag |= form->getLoopFlag();
     }

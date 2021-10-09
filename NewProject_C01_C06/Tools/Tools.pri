@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/rapidxml/rapidxml_iterators.hpp \
     $$PWD/rapidxml/rapidxml_print.hpp \
     $$PWD/rapidxml/rapidxml_utils.hpp \
+    $$PWD/MtcpFileHelper.h \
     $$PWD/MiniDumper.h
 
 SOURCES += \
@@ -27,6 +28,7 @@ SOURCES += \
     $$PWD/Util.cpp \
     $$PWD/XmlHelper.cpp \
     $$PWD/ConvertHelper.cpp \
+    $$PWD/MtcpFileHelper.cpp \
     $$PWD/MiniDumper.cpp
 
 INCLUDEPATH +=  $$PWD

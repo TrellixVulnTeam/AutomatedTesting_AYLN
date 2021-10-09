@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     updatePermissions();
     updateWindowTitle();
-    ui->label_sw_Cfg->setText(QString::fromStdString(ConfigParse::getInstance().getConfig()));
+    ui->label_sw_Cfg->setText(QString::fromStdString(CFG_PARSE.getConfig()));
 
     dcInitializeSystem(NULL);
     dcInitializeModule(NULL);
@@ -24,12 +24,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     totalNum = 0;
 
-    m_testplan_tool = std::shared_ptr<TestPlanInfo>(
-        new TestPlanInfo(QString::fromStdString(ConfigParse::getInstance().getSpecCsvPath())));
-    m_testplan_tool_flow = std::shared_ptr<TestPlanInfo>(
-        new TestPlanInfo(QString::fromStdString(ConfigParse::getInstance().getFlowCsvPath())));
-    QString positionStr =
-        FileTool::readContentWithPath(QString::fromStdString(ConfigParse::getInstance().getPositionCsvPath()));
+    m_testplan_tool =
+        std::shared_ptr<TestPlanInfo>(new TestPlanInfo(QString::fromStdString(CFG_PARSE.getSpecCsvPath())));
+    m_testplan_tool_flow =
+        std::shared_ptr<TestPlanInfo>(new TestPlanInfo(QString::fromStdString(CFG_PARSE.getFlowCsvPath())));
+    QString positionStr = FileTool::readContentWithPath(QString::fromStdString(CFG_PARSE.getPositionCsvPath()));
 
     systemTimer = new QTimer();
     connect(systemTimer, SIGNAL(timeout()), this, SLOT(updateSystemTimeUI()));
@@ -37,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     systemTimeLable = new QLabel(this);
     statusBar()->addPermanentWidget(systemTimeLable);
 
-    ui->StationName_lable->setText(QString::fromStdString(ConfigParse::getInstance().getProjectName()));
+    ui->StationName_lable->setText(QString::fromStdString(CFG_PARSE.getProjectName()));
     QLabel* locationLable = new QLabel("    DXD - JCiT    ", this);
     locationLable->setMinimumSize(locationLable->sizeHint());
     statusBar()->addWidget(locationLable, 5);
@@ -48,8 +47,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     statusBar()->setStyleSheet(QString("QStatusBar::item{border: 0px}"));
 
     initTestMode();
-    generateTable(ConfigParse::getInstance().getUnitCount());
-    generateUnits(ConfigParse::getInstance().getUnitCount());
+    generateTable(CFG_PARSE.getUnitCount());
+    generateUnits(CFG_PARSE.getUnitCount());
 
     connect(ui->StartButton, SIGNAL(clicked(bool)), this, SLOT(on_start()));
     connect(theSelection, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
@@ -62,7 +61,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(this, &MainWindow::mtcpConnectedStatus, this, &MainWindow::onMtcpConnectedStatus);
 
     m_mtcp = GENL::getInstance("mtcp");
-    onMtcpStatusChanged(ConfigParse::getInstance().getMtcp());
+    onMtcpStatusChanged(CFG_PARSE.getMtcp());
 
     m_loginDialog = new LoginDialog(this);
     connect(m_loginDialog, &LoginDialog::loginSuccessSignal, this, &MainWindow::onloginSuccess);
@@ -79,14 +78,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     timer = new MyTimer();
     connect(timer, SIGNAL(signalUpdateTimeUI()), this, SLOT(updateTimeUI()));
 
-    for (int i = 0; i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         TestAction* testaction = new TestAction(i, m_testplan_tool, m_testplan_tool_flow, positionStr);
         connect(testaction, &TestAction::updateLogViewUI, this, &MainWindow::onUpdateLogViewUI);
         connect(testaction, SIGNAL(flushUiWithRow(const Items*, int, int, int)), this,
                 SLOT(flushMainUiTable(const Items*, int, int, int)));
         connect(testaction, &TestAction::stopTimer, this, &MainWindow::stopTimer);
         connect(this, SIGNAL(appExit()), testaction, SLOT(algoReleaseSystem()));
-        connect(testaction, SIGNAL(unitStart(qint16, QString)), this, SLOT(onUnitStart(qint16, QString)));
+        connect(testaction, &TestAction::unitStart, this, &MainWindow::onUnitStart);
         connect(testaction, SIGNAL(updateUIInfo(QString, QString, QString, QString, QString&)), this,
                 SLOT(onUpdateUIInfo(QString, QString, QString, QString, QString&)));
         connect(testaction, &TestAction::connectedDeviceSignal, unitUIList[i], &UnitsForm::onConnectedDevice);
@@ -97,6 +96,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(testaction, &TestAction::stopTimer, m_loopDialog, &LoopTestDialog::onTestFinished);
         connect(testaction, &TestAction::stopLoopTestWhileError, m_loopDialog, &LoopTestDialog::stopLoopTestWhileError);
         connect(testaction, &TestAction::getLotName, this, &MainWindow::onGetLotName);
+        connect(testaction, &TestAction::savePivotFile, this, &MainWindow::onSavePivotFile,
+                Qt::BlockingQueuedConnection);
         testaction->connectDevice();
         testactionList.append(testaction);
     }
@@ -109,14 +110,13 @@ void MainWindow::reloadTestPlan()
     LOG_INFO("[Main] Reload new test plan");
     updateWindowTitle();
 
-    m_testplan_tool = std::shared_ptr<TestPlanInfo>(
-        new TestPlanInfo(QString::fromStdString(ConfigParse::getInstance().getSpecCsvPath())));
-    m_testplan_tool_flow = std::shared_ptr<TestPlanInfo>(
-        new TestPlanInfo(QString::fromStdString(ConfigParse::getInstance().getFlowCsvPath())));
-    QString positionStr =
-        FileTool::readContentWithPath(QString::fromStdString(ConfigParse::getInstance().getPositionCsvPath()));
+    m_testplan_tool =
+        std::shared_ptr<TestPlanInfo>(new TestPlanInfo(QString::fromStdString(CFG_PARSE.getSpecCsvPath())));
+    m_testplan_tool_flow =
+        std::shared_ptr<TestPlanInfo>(new TestPlanInfo(QString::fromStdString(CFG_PARSE.getFlowCsvPath())));
+    QString positionStr = FileTool::readContentWithPath(QString::fromStdString(CFG_PARSE.getPositionCsvPath()));
 
-    for (int i = 0; i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         QTableView* view = tableViewList[i];
         QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(view->model());
         if (NULL != model) {
@@ -179,7 +179,7 @@ void MainWindow::Delay_MSec(unsigned int msec)
 void MainWindow::on_start()
 {
     if (NULL == snDialog) {
-        snDialog = new SNDialog(this, ConfigParse::getInstance().getUnitCount());
+        snDialog = new SNDialog(this, CFG_PARSE.getUnitCount());
         connect(snDialog, &SNDialog::startAll, this, &MainWindow::onStartAllTest);
         connect(snDialog, &SNDialog::singleStart, this, &MainWindow::onSingleStart);
     }
@@ -190,7 +190,7 @@ void MainWindow::onStartAllTest(const QList<QString>& list)
 {
     flushClearTable();
 
-    for (int i = 0; i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         UnitsForm* uForm = unitUIList.at(i);
         if (uForm->getEnable()) {
             TestAction* tempAction = testactionList[i];
@@ -245,8 +245,9 @@ void MainWindow::onSingleStart(qint16 slot, const QString& sn)
     snDialog->close();
 }
 
-void MainWindow::onUnitStart(qint16 slot, const QString& sn)
+void MainWindow::onUnitStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath)
 {
+
     flushClearTable(slot);
     qDebug() << getUI_Info();
     UnitsForm* uForm = unitUIList.at(slot);
@@ -261,8 +262,62 @@ void MainWindow::onUnitStart(qint16 slot, const QString& sn)
         logUnitUI* temp_unit = logUnitUIList[slot];
         temp_unit->UnitSN->setText(tempAction->itemSn);
         temp_unit->UnitLogView->clear();
-
         uForm->scanSN(tempAction->itemSn);
+
+        if (CFG_PARSE.getMtcp()) {
+            if (NULL != m_mtcp && m_mtcp->isOpen()) {
+
+                QString pivotRequest;
+                m_mtcp->setTestCSVPath(mtcpFilePath + "/PivotRequest_Return.csv");
+
+                try {
+                    pivotRequest =
+                        MtcpFileHelper::outputPivotRequest(sn, QString::fromStdString(CFG_PARSE.getLotName()),
+                                                           QString::fromStdString(CFG_PARSE.getVersion()));
+                    const char* ret = m_mtcp->SendGENL(pivotRequest.toStdString(), GENL::DirectionType::REQUEST);
+                    if (!QString::fromLocal8Bit(ret).isEmpty()) {
+                        throw std::runtime_error("MTCP Fail.");
+                    }
+                }
+                catch (...) {
+                    try {
+                        pivotRequest =
+                            MtcpFileHelper::outputPivotRequest(sn, QString::fromStdString(CFG_PARSE.getLotName()),
+                                                               QString::fromStdString(CFG_PARSE.getVersion()));
+                        const char* ret = m_mtcp->SendGENL(pivotRequest.toStdString(), GENL::DirectionType::REQUEST);
+                        // todo need release
+                        //                        if (!QString::fromLocal8Bit(ret).isEmpty()) {
+                        //                            QMessageBox::warning(this, tr("Set MTCP REQUEST Failed"),
+                        //                            QString::fromLocal8Bit(ret)); uForm->onTestEnd(TEST_FAIL); return;
+                        //                        }
+                    }
+                    catch (std::runtime_error& e) {
+                        // todo need release
+                        //                        QMessageBox::warning(this, tr("Set MTCP Failed"), e.what());
+                        //                        uForm->onTestEnd(TEST_FAIL);
+                        //                        return;
+                    }
+                    catch (MTCP_ProtocolException& e) {
+                        // todo need release
+                        //                        QMessageBox::warning(this, tr("Set MTCP Failed"),
+                        //                                             tr("errorCode: %1, errorStr: %2")
+                        //                                                 .arg(e.getErrCode())
+                        //                                                 .arg(QString::fromStdString(e.getErrStr())));
+                        //                        uForm->onTestEnd(TEST_FAIL);
+                        //                        return;
+                    }
+                }
+
+                Util::MakeNDir(mtcpFilePath);
+                QFile::copy(pivotRequest, QString::fromStdString(mtcpFilePath) + "/PivotRequest.csv");
+
+            } else {
+                QMessageBox::warning(this, tr("Connect MTCP Failed"), tr("MTCP REQUEST failed."));
+                uForm->onTestEnd(TEST_FAIL);
+                return;
+            }
+        }
+
         tempAction->start();
         totalNum++;
         uForm->onTestStart();
@@ -347,7 +402,7 @@ void MainWindow::generateUnits(const int& UnitCount)
         unitFrom->setObjectName(unitName);
         gridLayout->addWidget(unitFrom, i / rowCount, i % rowCount + 1);
 
-        std::string testSpecName = Util::GetFileName(ConfigParse::getInstance().getSpecCsvPath());
+        std::string testSpecName = Util::GetFileName(CFG_PARSE.getSpecCsvPath());
         UNIT_INFO info(unitName, QString::fromStdString(testSpecName));
         unitFrom->setUnitInfo(info);
         unitUIList.append(unitFrom);
@@ -489,7 +544,7 @@ void MainWindow::flushMainUiTable(const Items* tempItem, int row, int colum, int
 
 void MainWindow::flushClearTable()
 {
-    for (int slot(0); slot < ConfigParse::getInstance().getUnitCount(); slot++) {
+    for (int slot(0); slot < CFG_PARSE.getUnitCount(); slot++) {
         UnitsForm* uForm = unitUIList.at(slot);
         if (!uForm->getEnable()) {
             continue;
@@ -529,7 +584,7 @@ void MainWindow::flushClearTable(qint16 slot)
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < ConfigParse::getInstance().getUnitCount(); i++) {
+    for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         TestAction* testaction = testactionList.at(i);
         delete testaction;
         testaction = NULL;
@@ -580,7 +635,7 @@ void MainWindow::on_mainBtn_clicked()
 QString MainWindow::getUI_Info() const
 {
     return QString("%1,%2,%3,%4,%5,%6,%7")
-        .arg(QString::fromStdString(ConfigParse::getInstance().getVersion()))
+        .arg(QString::fromStdString(CFG_PARSE.getVersion()))
         .arg(ui->label_SiteID->text())
         .arg(ui->label_ProjectID->text())
         .arg(ui->label_machineID->text())
@@ -598,7 +653,7 @@ void MainWindow::onLoginAction()
     } else if (ui->actionLogin->text() == tr("Logout")) {
         if (NULL != m_loginDialog) {
             m_authorityLabel->setText(tr("Authority: Invalid"));
-            ConfigParse::getInstance().setAuthority(User::Invalid);
+            CFG_PARSE.setAuthority(User::Invalid);
             updatePermissions();
             ui->actionLogin->setText(tr("Login"));
             LOG_INFO("[Main] Logout");
@@ -614,11 +669,11 @@ void MainWindow::onUserManagerAction()
 void MainWindow::onloginSuccess(const QString& userName, User::Authority authority)
 {
     LOG_INFO("[Main] Login Authority: %s", userName.toStdString().c_str());
-    ConfigParse::getInstance().setAuthority(authority);
+    CFG_PARSE.setAuthority(authority);
     updatePermissions();
 
     m_authorityLabel->setText(tr("Authority: %1").arg(userName));
-    if (ConfigParse::getInstance().getAuthority() != User::Invalid) {
+    if (CFG_PARSE.getAuthority() != User::Invalid) {
         ui->actionLogin->setText(tr("Logout"));
     }
 }
@@ -672,48 +727,63 @@ void MainWindow::onMtcpStatusChanged(bool status)
 {
     if (status) {
         if (!m_mtcp->isOpen()) {
-            if (ConfigParse::getInstance().getMtcpIP().empty() || ConfigParse::getInstance().getMtcpPort().empty()) {
+            if (CFG_PARSE.getMtcpIP().empty() || CFG_PARSE.getMtcpPort().empty()) {
                 QMessageBox::warning(this, "Connect Mtcp Failed", "Can't connect empty Ip or empty port.");
                 return;
             } else {
-                int ret = m_mtcp->open(ConfigParse::getInstance().getMtcpIP(),
-                                       std::stoi(ConfigParse::getInstance().getMtcpPort()), 2000);
+                int ret = m_mtcp->open(CFG_PARSE.getMtcpIP(), std::stoi(CFG_PARSE.getMtcpPort()), 2000);
                 if (ret != 0) {
-                    emit mtcpConnectedStatus(false);
-                    QMessageBox::warning(this, "Connect MTCP Failed",
-                                         QString("ip: %1, port: %2")
-                                             .arg(QString::fromStdString(ConfigParse::getInstance().getMtcpIP()))
-                                             .arg(QString::fromStdString(ConfigParse::getInstance().getMtcpPort())));
+                    std::shared_ptr<std::thread> _thread = std::shared_ptr<std::thread>(new std::thread([&]() {
+                        while (!m_mtcp->isOpen() && !isExit) {
+                            emit mtcpConnectedStatus(1);
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                            emit mtcpConnectedStatus(2);
+                            m_mtcp->open(CFG_PARSE.getMtcpIP(), std::stoi(CFG_PARSE.getMtcpPort()), 1000);
+                        }
+                        emit mtcpConnectedStatus(0);
+                    }));
+                    _thread->detach();
+
+                    //                    QMessageBox::warning(this, "Connect MTCP Failed",
+                    //                                         QString("ip: %1, port: %2")
+                    //                                             .arg(QString::fromStdString(CFG_PARSE.getMtcpIP()))
+                    //                                             .arg(QString::fromStdString(CFG_PARSE.getMtcpPort())));
                 } else {
-                    m_mtcp->setLogPath(ConfigParse::getInstance().getLogPath() + "MTCP");
-                    emit mtcpConnectedStatus(true);
+                    m_mtcp->setLogPath(CFG_PARSE.getLogPath() + "MtcpLog/MTCP_Log");
+                    emit mtcpConnectedStatus(0);
                 }
             }
         }
     } else {
         m_mtcp->close();
-        emit mtcpConnectedStatus(false);
+        emit mtcpConnectedStatus(1);
     }
 }
 
 void MainWindow::onGetLotName(const QString& lotName, int& ret)
 {
-    if (ConfigParse::getInstance().getMtcp()) {
+    if (CFG_PARSE.getMtcp()) {
         if (!m_mtcp->isOpen()) {
             QMessageBox::warning(this, "Mtcp set lotName failed", "Mtcp was not connected.");
             return;
         }
 
         try {
-            const QString lotEnd =
-                MtcpFileHelper::outputLotEnd(QString::fromStdString(ConfigParse::getInstance().getLotName()));
-            const char* ret = m_mtcp->SendGENL(lotEnd.toStdString(), GENL::DirectionType::REPORT);
+            const QString lotEnd = MtcpFileHelper::outputLotEnd(QString::fromStdString(CFG_PARSE.getLotName()));
+            const char* res = m_mtcp->SendGENL(lotEnd.toStdString(), GENL::DirectionType::REPORT);
+            std::string lotEndFileSavePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName();
+            Util::MakeNDir(lotEndFileSavePath);
+            QFile::copy(lotEnd, QString::fromStdString(lotEndFileSavePath) + "/LotEnd.csv");
 
             const QString lotStart = MtcpFileHelper::outputLotStart(lotName);
-            ret = m_mtcp->SendGENL(lotStart.toStdString(), GENL::DirectionType::REPORT);
-            if (!QString::fromLocal8Bit(ret).isEmpty()) {
-                throw std::runtime_error(std::string(ret));
+            res = m_mtcp->SendGENL(lotStart.toStdString(), GENL::DirectionType::REPORT);
+            if (!QString::fromLocal8Bit(res).isEmpty()) {
+                // todo need release
+                //                throw std::runtime_error(std::string(ret));
             }
+            std::string lotStartFileSavePath = CFG_PARSE.getLogPath() + "MtcpLog/" + lotName.toStdString();
+            Util::MakeNDir(lotStartFileSavePath);
+            QFile::copy(lotStart, QString::fromStdString(lotStartFileSavePath) + "/LotStart.csv");
             ret = 0;
         }
         catch (std::runtime_error& e) {
@@ -724,18 +794,48 @@ void MainWindow::onGetLotName(const QString& lotName, int& ret)
     }
 }
 
-void MainWindow::onMtcpConnectedStatus(bool status)
+void MainWindow::onSavePivotFile(const QString& path, int& ret)
 {
-    if (status) {
-        ui->mtcpStatus->setPixmap(QPixmap(":/MainUI/light_on.png"));
+    if (CFG_PARSE.getMtcp()) {
+        if (!m_mtcp->isOpen()) {
+            QMessageBox::warning(this, "Mtcp send pivot failed", "Mtcp was not connected.");
+            return;
+        }
+
+        std::string fl = Util::GetFilePath(path.toStdString());
+        m_mtcp->setTestCSVPath(fl + "/PivotReport_Return.csv");
+        try {
+            const char* res = m_mtcp->SendGENL(path.toStdString(), GENL::DirectionType::REPORT);
+            if (!QString::fromLocal8Bit(res).isEmpty()) {
+                throw std::runtime_error(std::string(res));
+            }
+            ret = 0;
+        }
+        catch (std::runtime_error& e) {
+            QMessageBox::warning(this, tr("Send Pivot to Mtcp failed"), QString::fromStdString(e.what()));
+        }
+        catch (MTCP_ProtocolException& e) {
+            QMessageBox::warning(this, tr("Send Pivot to Mtcp failed"), QString::fromStdString(e.getErrStr()));
+        }
     } else {
-        ui->mtcpStatus->setPixmap(QPixmap(":/MainUI/light_off.png"));
+        ret = 0;
+    }
+}
+
+void MainWindow::onMtcpConnectedStatus(int status)
+{
+    if (status == 0) {
+        setStyleSheet("#MainWindow{border:3px solid blue; border-radius: 3px;}");
+    } else if (status == 1) {
+        setStyleSheet("#MainWindow{border:3px solid red; border-radius: 3px;}");
+    } else {
+        setStyleSheet("#MainWindow{border:3px solid gray; border-radius: 3px;}");
     }
 }
 
 void MainWindow::updatePermissions()
 {
-    User::Authority authority = ConfigParse::getInstance().getAuthority();
+    User::Authority authority = CFG_PARSE.getAuthority();
     switch (authority) {
     case User::Invalid:
         ui->lineEdit_OperatorID->setReadOnly(true);
@@ -788,11 +888,11 @@ void MainWindow::updatePermissions()
 
 void MainWindow::updateWindowTitle()
 {
-    std::string flowName = Util::GetFileNameWithOutExt(ConfigParse::getInstance().getFlowCsvPath());
-    std::string specName = Util::GetFileNameWithOutExt(ConfigParse::getInstance().getSpecCsvPath());
-    std::string positionName = Util::GetFileNameWithOutExt(ConfigParse::getInstance().getPositionCsvPath());
+    std::string flowName = Util::GetFileNameWithOutExt(CFG_PARSE.getFlowCsvPath());
+    std::string specName = Util::GetFileNameWithOutExt(CFG_PARSE.getSpecCsvPath());
+    std::string positionName = Util::GetFileNameWithOutExt(CFG_PARSE.getPositionCsvPath());
 
-    const QString titleStr = QString::fromStdString(ConfigParse::getInstance().getVersion())
+    const QString titleStr = QString::fromStdString(CFG_PARSE.getVersion())
                              + "                                                              "
                                "                                                            "
                              + QString("%1&%2&%3")
@@ -822,6 +922,7 @@ void MainWindow::onLanguageTriggered(bool isChineseBtn)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    isExit = true;
     dcReleaseModule();
     dcReleaseSystem();
     QMainWindow::closeEvent(event);

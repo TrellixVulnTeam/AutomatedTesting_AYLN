@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <serialporttool.h>
 #include <tcpsockettool.h>
-#include <QThread>
 #include <QSerialPortInfo>
 #include "ConfigParse.h"
 

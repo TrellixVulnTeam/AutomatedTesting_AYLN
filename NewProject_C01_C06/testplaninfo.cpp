@@ -58,8 +58,7 @@ void TestPlanInfo::generateHeadTitle(const std::vector<Items*>& tempList)
 
     for (int i = 0; i < tempList.size(); i++) {
         Items* tempItem = tempList[i];
-        // replace itemname #
-        titleStr += tempItem->ItemName.replace("#", "") + ",";
+        titleStr += tempItem->ItemName + ",";
         lowLimitStr += tempItem->lowerLimits + ",";
         uplowerLimitStr += tempItem->upperLimits + ",";
         UnitStr += tempItem->Unit + ",";
@@ -71,8 +70,8 @@ void TestPlanInfo::generateHeadTitle(const std::vector<Items*>& tempList)
 std::vector<Items*> TestPlanInfo::getTestPlanShowItems()
 {
     std::vector<Items*> items;
-    for (int i = 0; i < ConfigParse::getInstance().getGroupOrderVec().size(); i++) {
-        QString groupName = QString::fromStdString(ConfigParse::getInstance().getGroupOrderItem(i));
+    for (int i = 0; i < CFG_PARSE.getGroupOrderVec().size(); i++) {
+        QString groupName = QString::fromStdString(CFG_PARSE.getGroupOrderItem(i));
         if (m_testPlanItemMap.find(groupName) != m_testPlanItemMap.end()) {
             foreach (Items* it, m_testPlanItemMap[groupName]) {
                 items.push_back(it);

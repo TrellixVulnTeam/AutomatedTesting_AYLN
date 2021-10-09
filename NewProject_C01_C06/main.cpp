@@ -53,10 +53,10 @@ int main(int argc, char* argv[])
         QString configPath = QApplication::applicationDirPath() + "/Config/Config.xml";
 #endif
         INIT_LOG("D:\\vault\\JCiT\\TestManagerLog\\TestManager.log");
-        ConfigParse::getInstance().prestrain(configPath.toStdString());
+        CFG_PARSE.prestrain(configPath.toStdString());
         LOG_INFO("[Main] Preloads the configuration file");
 
-        QString logPath = QString::fromStdString(ConfigParse::getInstance().getLogPath()) + "TestManagerLog/";
+        QString logPath = QString::fromStdString(CFG_PARSE.getLogPath()) + "TestManagerLog/";
         Util::MakeNDir(logPath.toStdString());
         logPath.append("TestManager.log");
         UNINT_LOG();

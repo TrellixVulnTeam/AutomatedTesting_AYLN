@@ -1,6 +1,8 @@
 #include "SNInputForm.h"
 #include "ui_SNInputForm.h"
+#include "ConfigParse.h"
 #include <QRegExp>
+#include <QDateTime>
 
 const QString SNRegExp = "\\S{17}";
 
@@ -40,5 +42,7 @@ void SNInputForm::clearSN()
 
 void SNInputForm::on_singleStartBtn_clicked()
 {
-    emit singleStart(slot, ui->snLineEdit->text());
+    std::string mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unitx/"
+                               + QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toStdString();
+    emit singleStart(slot, ui->snLineEdit->text(), mtcpFilePath);
 }

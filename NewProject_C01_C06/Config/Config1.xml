@@ -4,7 +4,7 @@
 	<Config>Cfg0001</Config>
 	<UnitCount>3</UnitCount>
 	<LogPath>D:/vault/JCiT/</LogPath>
-	<LotName>Lot001</LotName>
+	<LotName>Lot999</LotName>
 	<FlowCsvPath>[App]/Config/Testflow_DOE.csv</FlowCsvPath>
 	<SpecCsvPath>[App]/Config/TestSpec_DOE.csv</SpecCsvPath>
 	<PositionCsvPath>[App]/Config/Position.csv</PositionCsvPath>
@@ -43,8 +43,10 @@
         <Value>TRUE</Value>
         <Value>TRUE</Value>
 	</IsChoose>
-	<GroupOrder count="11">
+	<GroupOrder count="13">
 		<Value>TSCR</Value>
+		<Value>TRAC</Value>
+		<Value>PDMT</Value>
 		<Value>Offset</Value>
 		<Value>Noise</Value>
 		<Value>C01</Value>

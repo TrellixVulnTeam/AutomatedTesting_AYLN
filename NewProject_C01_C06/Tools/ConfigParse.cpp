@@ -62,6 +62,19 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         m_positionCsvPath = _node.Value<std::string>();
         Util::Replace(m_positionCsvPath, "[App]", appPath.toStdString(), 0);
 
+        _node = configurationNode.Child(KLotName);
+        m_lotName = _node.Value<std::string>();
+
+        _node = configurationNode.Child(KMtcpIP);
+        if (_node.isValid()) {
+            m_mtcpIP = _node.Value<std::string>();
+        }
+
+        _node = configurationNode.Child(KMtcpPort);
+        if (_node.isValid()) {
+            m_mtcpPort = _node.Value<std::string>();
+        }
+
         LOG_INFO("");
         LOG_INFO("[Main] ***********************");
         LOG_INFO("[Main] Config xml path: %s", m_pathOfUIConf.c_str());
@@ -72,6 +85,7 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         LOG_INFO("[Main] FlowCsvPath: %s", m_flowCsvPath.c_str());
         LOG_INFO("[Main] SpecCsvPath: %s", m_specCsvPath.c_str());
         LOG_INFO("[Main] Position: %s", m_positionCsvPath.c_str());
+        LOG_INFO("[Main] LotName: %s", m_lotName.c_str());
 
         XmlNode device = configurationNode.Child(KDevice);
         if (device.isValid()) {
@@ -132,6 +146,8 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         LOG_INFO("[Main] Z: %d", m_z);
         LOG_INFO("[Main] TimeStep: %.7f", m_timeStep);
         LOG_INFO("[Main] MTCP: %s", m_Mtcp ? "True" : "False");
+        LOG_INFO("[Main] MtcpIP: %s", m_mtcpIP.c_str());
+        LOG_INFO("[Main] MtcpPort: %s", m_mtcpPort.c_str());
         LOG_INFO("[Main] MES: %s", m_Mes ? "True" : "False");
         LOG_INFO("[Main] ***********************\n");
 
@@ -334,6 +350,15 @@ void ConfigParse::setTestInfo(const std::string& node, const std::string& value)
         } else if (node == KPositionCsvPath) {
             m_positionCsvPath = value;
             LOG_INFO("[Main] Change PositionCsvPath to: %s", value.c_str());
+        } else if (node == KMtcpIP) {
+            m_mtcpIP = value;
+            LOG_INFO("[Main] Change MtcpIP to: %s", value.c_str());
+        } else if (node == KMtcpPort) {
+            m_mtcpPort = value;
+            LOG_INFO("[Main] Change MtcpPort to: %s", value.c_str());
+        } else if (node == KLotName) {
+            m_lotName = value;
+            LOG_INFO("[Main] Change LotName to: %s", value.c_str());
         }
     } else {
         procError(KConfiguration);

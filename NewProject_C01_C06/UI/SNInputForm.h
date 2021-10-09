@@ -21,7 +21,7 @@ public:
     void clearSN();
 
 signals:
-    void singleStart(qint16 slot, const QString& sn);
+    void singleStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
     void returnPressed(qint16 slot);
 
 private slots:

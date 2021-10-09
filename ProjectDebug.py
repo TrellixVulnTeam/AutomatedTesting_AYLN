@@ -31,7 +31,6 @@ for i, csvLine in enumerate(csvLines):
     if i != 500000:
         cols = csvLine.split(',')
         targetList.append(float(cols[0]))
-        targetList.append(float(cols[0]))
         # targetList.append(8.23445)
 
 # for _ in range(500000):tmpVal
@@ -40,7 +39,7 @@ for i, csvLine in enumerate(csvLines):
 
 str1 = b'raw data[unit:V]['
 str2 = b'][DONE]\r\n'
-rawData = struct.pack('17s1000000f9s', str1, *targetList, str2)
+rawData = struct.pack('17s500000f9s', str1, *targetList, str2)
 rawData = rawData.replace(b'\x00\x00\x00', b'')
 
 class UartDebug(object):
@@ -208,6 +207,10 @@ class Ui_MainDialog(QDialog):
         _thread3 = threading.Thread(target=self.unit3DataSocket.socket_service)
         _thread3.start()
 
+        # self.mtcpSocket = SockDebug(6666)
+        # mtcpThread = threading.Thread(target=self.mtcpSocket.socket_service)
+        # mtcpThread.start()
+
         self.unit1Uart1 = UartDebug('COM2')
         self.unit1Uart2 = UartDebug('COM4')
         self.unit2Uart1 = UartDebug('COM6')
@@ -336,7 +339,7 @@ class Ui_MainDialog(QDialog):
         self.unit2Socket.send('Grip#1$')
 
     def unit2StartTest(self):
-        self.unit2Socket.send('StartTest#SNASDFJY365GDTRE2#Op123#Lot001#OffLine#RS#P1#Config01$')
+        self.unit2Socket.send('StartTest#SNASDFJY365GDTRE2#Op123#Lot002#OffLine#RS#P1#Config01$')
 
     def unit2Result(self):
         self.unit2Socket.send('Result$')
@@ -354,7 +357,7 @@ class Ui_MainDialog(QDialog):
         self.unit3Socket.send('Grip#1$')
 
     def unit3StartTest(self):
-        self.unit3Socket.send('StartTest#SNASDFJY365GDTRE3#Op123#Lot001#MP#RS#P1#Config01$')
+        self.unit3Socket.send('StartTest#SNASDFJY365GDTRE3#Op123#Lot003#MP#RS#P1#Config01$')
 
     def unit3Result(self):
         self.unit3Socket.send('Result$')

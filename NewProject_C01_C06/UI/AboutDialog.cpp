@@ -24,7 +24,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AboutDia
     const QString time_build = QString("%1 %2").arg(buildDate.toString("yyyy.MM.dd")).arg(buildTime.toString());
     ui->buildTime->setText(QString("%1 %2").arg(tr("Built on ")).arg(time_build));
 
-    ui->softwareVersion->setText(QString::fromStdString(ConfigParse::getInstance().getVersion()));
+    ui->softwareVersion->setText(QString::fromStdString(CFG_PARSE.getVersion()));
     ui->qtVersion->setText(buildCompatibilityString());
 }
 

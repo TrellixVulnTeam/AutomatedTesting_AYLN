@@ -148,19 +148,19 @@ LoadProfileDialog::LoadProfileDialog(QWidget* parent) : QDialog(parent)
 
     QTabWidget* tabWidget = new QTabWidget(this);
     LoadProfileWidget* flowWidget = new LoadProfileWidget(this);
-    flowWidget->setProfile(QString::fromStdString(ConfigParse::getInstance().getFlowCsvPath()), "flow");
+    flowWidget->setProfile(QString::fromStdString(CFG_PARSE.getFlowCsvPath()), "flow");
     tabWidget->addTab(flowWidget, tr("Flow"));
     connect(flowWidget, &LoadProfileWidget::itemDoubleClicked, this, &LoadProfileDialog::onLoad);
     connect(this, &LoadProfileDialog::clickLanguageActionSignal, [=]() { flowWidget->clickLanguageAction(); });
 
     LoadProfileWidget* specWidget = new LoadProfileWidget(this);
-    specWidget->setProfile(QString::fromStdString(ConfigParse::getInstance().getSpecCsvPath()), "spec");
+    specWidget->setProfile(QString::fromStdString(CFG_PARSE.getSpecCsvPath()), "spec");
     tabWidget->addTab(specWidget, tr("Spec"));
     connect(specWidget, &LoadProfileWidget::itemDoubleClicked, this, &LoadProfileDialog::onLoad);
     connect(this, &LoadProfileDialog::clickLanguageActionSignal, [=]() { specWidget->clickLanguageAction(); });
 
     LoadProfileWidget* positionWidget = new LoadProfileWidget(this);
-    positionWidget->setProfile(QString::fromStdString(ConfigParse::getInstance().getPositionCsvPath()), "position");
+    positionWidget->setProfile(QString::fromStdString(CFG_PARSE.getPositionCsvPath()), "position");
     tabWidget->addTab(positionWidget, tr("Position"));
     connect(positionWidget, &LoadProfileWidget::itemDoubleClicked, this, &LoadProfileDialog::onLoad);
     connect(this, &LoadProfileDialog::clickLanguageActionSignal, [=]() { positionWidget->clickLanguageAction(); });
@@ -197,9 +197,9 @@ void LoadProfileDialog::onLoad()
     LoadProfileWidget* specWidget = m_profileWidgetList.at(1);
     LoadProfileWidget* positionWidget = m_profileWidgetList.at(2);
 
-    ConfigParse::getInstance().setTestInfo(KFlowCsvPath, flowWidget->getProfile().toStdString());
-    ConfigParse::getInstance().setTestInfo(KSpecCsvPath, specWidget->getProfile().toStdString());
-    ConfigParse::getInstance().setTestInfo(KPositionCsvPath, positionWidget->getProfile().toStdString());
+    CFG_PARSE.setTestInfo(KFlowCsvPath, flowWidget->getProfile().toStdString());
+    CFG_PARSE.setTestInfo(KSpecCsvPath, specWidget->getProfile().toStdString());
+    CFG_PARSE.setTestInfo(KPositionCsvPath, positionWidget->getProfile().toStdString());
 
     emit loadCSVFileSuccessSignal();
 

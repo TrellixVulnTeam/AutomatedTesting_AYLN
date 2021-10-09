@@ -96,7 +96,7 @@ signals:
     void connectedDeviceSignal(const std::vector<std::string>& names);
     void flushUiWithRow(const Items* tempItem, int row, int colum, int slot);
     void stopTimer(int slot, TEST_RESULT result);
-    void unitStart(qint16 slot, const QString& sn);
+    void unitStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
     void tcpDisconnected();
     void sendDataToServer(const QString& msg);
     void updateUIInfo(const QString& opID, const QString& lotName, const QString& productionMode, const QString& siteID,
@@ -106,6 +106,7 @@ signals:
     void stopLoopTestWhileError(int slot);
     void connectDevices(std::map<std::string, DeviceInfo>& devicMap, const QString& soltNum);
     void getLotName(const QString& lotName, int& ret);
+    void savePivotFile(const QString& path, int& ret);
 
 public slots:
     void algoReleaseSystem();
@@ -212,6 +213,8 @@ private:
     QList<QString> list_Z;
     QList<QString> list_Beta;
     QList<QString> list_Gamma;
+
+    std::string m_mtcpFilePath;
 
     std::shared_ptr<TestPlanInfo> m_testFlowTool = nullptr;
     std::shared_ptr<TestPlanInfo> m_testSpecTool = nullptr;

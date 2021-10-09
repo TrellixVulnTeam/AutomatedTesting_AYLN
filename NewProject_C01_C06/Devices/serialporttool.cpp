@@ -1,5 +1,4 @@
 #include "serialporttool.h"
-#include "QThread"
 #include "ml_file.h"
 
 serialportTool::serialportTool(QObject* parent) : QObject(parent)

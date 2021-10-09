@@ -20,7 +20,7 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
     isReady = true;
     titleStr = tempTestplaninfo->getHeadTitle();
 
-    if (ConfigParse::getInstance().getSlot().find("1") != std::string::npos) {
+    if (CFG_PARSE.getSlot().find("1") != std::string::npos) {
         slotID = QString("%1").arg(unitNum + 3);
     } else {
         slotID = QString("%1").arg(unitNum + 4);
@@ -58,8 +58,9 @@ void TestAction::reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestpla
 void TestAction::connectDevice()
 {
     m_devices = new ConfigDevice();
-    device_th = new QThread(this);
+    device_th = new QThread();
     m_devices->moveToThread(device_th);
+    connect(device_th, &QThread::finished, device_th, &QThread::deleteLater);
     device_th->start();
 
     connect(m_devices, &ConfigDevice::errorHappend, [&](const QString& msg) {
@@ -68,7 +69,7 @@ void TestAction::connectDevice()
     });
     connect(this, &TestAction::connectDevices, m_devices, &ConfigDevice::onConnectDevices,
             Qt::BlockingQueuedConnection);
-    emit connectDevices(ConfigParse::getInstance().getUnitDevicesMap(), QString::number(unitNum + offsetNum));
+    emit connectDevices(CFG_PARSE.getUnitDevicesMap(), QString::number(unitNum + offsetNum));
     m_devices->setTcpCallBack(onDealWithSocketRecv, this);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -105,7 +106,7 @@ void TestAction::run()
     plus_Xp = 0;
     plus_Y = 0;
     plus_Z = 0;
-    m_logPath = QString::fromStdString(ConfigParse::getInstance().getLogPath())
+    m_logPath = QString::fromStdString(CFG_PARSE.getLogPath())
                 + QString("Unit%1/%2/%3/")
                       .arg(unitNum + offsetNum)
                       .arg(itemSn)
@@ -123,11 +124,11 @@ void TestAction::run()
     try {
         startTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
 
-        for (int i = 0; i < ConfigParse::getInstance().getGroupOrderVec().size(); i++) {
+        for (int i = 0; i < CFG_PARSE.getGroupOrderVec().size(); i++) {
             if (m_loopStopFlag)
                 break;
 
-            QString groupName = QString::fromStdString(ConfigParse::getInstance().getGroupOrderItem(i));
+            QString groupName = QString::fromStdString(CFG_PARSE.getGroupOrderItem(i));
             std::vector<Items*> tempFlowItemList = m_testFlowTool->getTestPlanItemMap()[groupName];
             if (groupName.contains("offset", Qt::CaseInsensitive)) {
                 if (rms == 0) {
@@ -301,20 +302,20 @@ void TestAction::run()
                             judgmentWithoutMTCP(currentSpecItemList[k], failMessge);
                             tempItem->Result &= currentSpecItemList[k]->Result;
                             content = content + currentSpecItemList[k]->Value + ",";
-
-                            pivotStr += QString("%1,%2,,%3,NA,NA,NA,%4,%5,%6,%7,%8\n")
-                                            .arg(currentSpecItemList[k]->Index)
-                                            .arg(currentSpecItemList[k]->Group)
-                                            .arg(currentSpecItemList[k]->ItemName)
-                                            .arg(currentSpecItemList[k]->lowerLimits == "nan"
-                                                     ? "NA"
-                                                     : currentSpecItemList[k]->lowerLimits)
-                                            .arg(currentSpecItemList[k]->upperLimits == "nan"
-                                                     ? "NA"
-                                                     : currentSpecItemList[k]->upperLimits)
-                                            .arg(currentSpecItemList[k]->Unit)
-                                            .arg(currentSpecItemList[k]->Value)
-                                            .arg(currentSpecItemList[k]->Result ? "PASS" : "FAIL");
+                            pivotStr +=
+                                QString("%1,%2,,#%3,0000-00-00 00:00:00,0000-00-00 00:00:00,0,%4,%5,%6,%7,%8\n")
+                                    .arg(currentSpecItemList[k]->Index)
+                                    .arg(currentSpecItemList[k]->Group.contains("Noise") ? "PDDC" : "DIFF")
+                                    .arg(currentSpecItemList[k]->ItemName)
+                                    .arg(currentSpecItemList[k]->lowerLimits == "nan"
+                                             ? ""
+                                             : currentSpecItemList[k]->lowerLimits)
+                                    .arg(currentSpecItemList[k]->upperLimits == "nan"
+                                             ? ""
+                                             : currentSpecItemList[k]->upperLimits)
+                                    .arg(currentSpecItemList[k]->Unit == "NA" ? "" : currentSpecItemList[k]->Unit)
+                                    .arg(currentSpecItemList[k]->Value)
+                                    .arg(currentSpecItemList[k]->Result ? "PASS" : "FAIL");
 
                             QString _info = QString("ItemName %1, Lower %2, Upper %3, Unit %4, Value %5")
                                                 .arg(currentSpecItemList[k]->ItemName)
@@ -332,36 +333,34 @@ void TestAction::run()
                     }
 
                     if (tempItem->ClassType == "MtcpInfo") {
-                        if (groupName == "TSCR" || groupName == "POST" || groupName == "TSED") {
-                            std::vector<Items*> currentSpecItemList = m_testSpecTool->getTestPlanItemMap()[groupName];
-                            for (int k = 0; k < currentSpecItemList.size(); k++) {
-                                if (currentSpecItemList[k]->ItemName.contains("MODULE_SN")) {
-                                    currentSpecItemList[k]->Value = itemSn;
-                                } else if (currentSpecItemList[k]->ItemName.contains("LOT_NAME")) {
-                                    currentSpecItemList[k]->Value = lotName_ST;
-                                } else if (currentSpecItemList[k]->ItemName.contains("TEST_SW_VER")) {
-                                    currentSpecItemList[k]->Value =
-                                        QString::fromStdString(ConfigParse::getInstance().getVersion());
-                                } else {
-                                    currentSpecItemList[k]->Value = currentSpecItemList[k]->Param;
-                                }
-
-                                content = content + currentSpecItemList[k]->Value + ",";
-                                pivotStr += QString("%1,%2,,%3,NA,NA,NA,%4,%5,%6,%7,PASS\n")
-                                                .arg(currentSpecItemList[k]->Index)
-                                                .arg(currentSpecItemList[k]->Group)
-                                                .arg(currentSpecItemList[k]->ItemName)
-                                                .arg(currentSpecItemList[k]->lowerLimits == "nan"
-                                                         ? "NA"
-                                                         : currentSpecItemList[k]->lowerLimits)
-                                                .arg(currentSpecItemList[k]->upperLimits == "nan"
-                                                         ? "NA"
-                                                         : currentSpecItemList[k]->upperLimits)
-                                                .arg(currentSpecItemList[k]->Unit)
-                                                .arg(currentSpecItemList[k]->Value);
-
-                                emit flushUiWithRow(currentSpecItemList[k], flushRow++, 5, unitNum);
+                        std::vector<Items*> currentSpecItemList = m_testSpecTool->getTestPlanItemMap()[groupName];
+                        for (int k = 0; k < currentSpecItemList.size(); k++) {
+                            if (currentSpecItemList[k]->ItemName.contains("MODULE_SN")) {
+                                currentSpecItemList[k]->Value = itemSn;
+                            } else if (currentSpecItemList[k]->ItemName.contains("MOD_LOT_NAME")) {
+                                currentSpecItemList[k]->Value = lotName_ST;
+                            } else if (currentSpecItemList[k]->ItemName.contains("TEST_SW_VER")) {
+                                currentSpecItemList[k]->Value = QString::fromStdString(CFG_PARSE.getVersion());
+                            } else {
+                                currentSpecItemList[k]->Value = currentSpecItemList[k]->Param;
                             }
+
+                            content = content + currentSpecItemList[k]->Value + ",";
+                            pivotStr +=
+                                QString("%1,%2,,#%3,0000-00-00 00:00:00,0000-00-00 00:00:00,0,%4,%5,%6,%7,PASS\n")
+                                    .arg(currentSpecItemList[k]->Index)
+                                    .arg(currentSpecItemList[k]->Group)
+                                    .arg(currentSpecItemList[k]->ItemName)
+                                    .arg(currentSpecItemList[k]->lowerLimits == "nan"
+                                             ? ""
+                                             : currentSpecItemList[k]->lowerLimits)
+                                    .arg(currentSpecItemList[k]->upperLimits == "nan"
+                                             ? ""
+                                             : currentSpecItemList[k]->upperLimits)
+                                    .arg(currentSpecItemList[k]->Unit == "NA" ? "" : currentSpecItemList[k]->Unit)
+                                    .arg(currentSpecItemList[k]->Value);
+
+                            emit flushUiWithRow(currentSpecItemList[k], flushRow++, 5, unitNum);
                         }
                     }
 
@@ -373,14 +372,6 @@ void TestAction::run()
 
                     response.clear();
                     response2.clear();
-
-                    //                    tempItem->StopTime = QDateTime::currentDateTime().toString("yyyy-MM-dd
-                    //                    hh:mm:ss.zzz"); tempItem->Index = QString::number(j); tempItem->others =
-                    //                    otherLog;
-
-                    //                    QString LogInfo;
-                    //                    LogInfo = saveUnitTxtLog(tempItem);
-                    //                    MLOG_INFO(LogInfo);
                 }
             }
         }
@@ -401,9 +392,14 @@ void TestAction::run()
         endTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
         //    emit sendDataToServer("TestFinished!$");
 
-        FileTool::writeContentWithPath(
-            "", pivotStr, m_logPath,
-            QString("Pivot_%1.csv").arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss")));
+        FileTool::writeContentWithPath("", pivotStr, QString::fromStdString(m_mtcpFilePath), "/PivotReport.csv");
+        int ret = -1;
+        emit savePivotFile(QString::fromStdString(m_mtcpFilePath) + "/PivotReport.csv", ret);
+        if (ret != 0) {
+            testResult = TEST_FAIL;
+            testResultStr = "FAIL";
+            failMessge += "Send pivot to Mtcp failed.";
+        }
         saveUnitCSVData(itemSn, testResultStr, QString::number(unitNum + offsetNum), failMessge, uiInfo, content);
     }
     catch (std::runtime_error& e) {
@@ -469,7 +465,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                 targetVData = (double*)malloc(count * sizeof(double));
 
                 double sum = 0;
-                double timeStep = ConfigParse::getInstance().getTimeStep();
+                double timeStep = CFG_PARSE.getTimeStep();
                 // filter row data[unit:V][ and ][DONE]\r\n
                 for (unsigned int i = 17; i < resStr.size() - 9; i++) {
                     snprintf(buf, sizeof(buf), "%02x", (uint8_t)resStr[i]);
@@ -537,8 +533,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
 
                         float targetAngle;
                         float velcoty;
-                        ConfigParse::getInstance().getTargetAngleAndVel(tempItem->Group.toStdString(), targetAngle,
-                                                                        velcoty);
+                        CFG_PARSE.getTargetAngleAndVel(tempItem->Group.toStdString(), targetAngle, velcoty);
                         pthis->palgo->jptProcessSingle(pthis->outputPath, velcoty, targetAngle, timeData, voltageData,
                                                        dataSize);
                         //                                        palgo->jptProcessSingleDemo(rawDataFilePath,
@@ -582,9 +577,9 @@ void TestAction::createrXpOrXsCmd(QString str, QString& cmd)
     int plusCnt = 0;
 
     if (str.contains("X_N")) {
-        plusCnt = (int)ConfigParse::getInstance().getXp() * step / 0.25;
+        plusCnt = (int)CFG_PARSE.getXp() * step / 0.25;
     } else {
-        plusCnt = -(int)ConfigParse::getInstance().getXp() * step / 0.25;
+        plusCnt = -(int)CFG_PARSE.getXp() * step / 0.25;
     }
 
     if (abs(plusCnt) != 0) {
@@ -751,7 +746,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
     if (str.contains("C01")) {
         // 5.send Xp-axis pluse
         degree = m_Xp.toFloat();
-        plusCnt = -(int)ConfigParse::getInstance().getXp() * degree / 0.25;
+        plusCnt = -(int)CFG_PARSE.getXp() * degree / 0.25;
         if (!str.contains("C00")) {
             plus_Xp += plusCnt;
         } else {
@@ -775,7 +770,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
         // 2.send Y-axis pluse
         distance = m_Y.toFloat();
-        plusCnt = -(int)ConfigParse::getInstance().getY() * distance;
+        plusCnt = -(int)CFG_PARSE.getY() * distance;
         if (!str.contains("C00")) {
             plus_Y += plusCnt;
         } else {
@@ -799,7 +794,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
         // 1.send Z-axis pluse
         distance = m_Z.toFloat();
-        plusCnt = (int)ConfigParse::getInstance().getZ() * distance;
+        plusCnt = (int)CFG_PARSE.getZ() * distance;
         if (!str.contains("C00")) {
             plus_Z += plusCnt;
         } else {
@@ -823,7 +818,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
     } else {
         // 1.send Z-axis pluse
         distance = m_Z.toFloat();
-        plusCnt = (int)ConfigParse::getInstance().getY() * distance;
+        plusCnt = (int)CFG_PARSE.getY() * distance;
         if (!str.contains("C00")) {
             plus_Z += plusCnt;
         } else {
@@ -847,7 +842,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
         // 2.send Y-axis pluse
         distance = m_Y.toFloat();
-        plusCnt = -(int)ConfigParse::getInstance().getZ() * distance;
+        plusCnt = -(int)CFG_PARSE.getZ() * distance;
         if (!str.contains("C00")) {
             plus_Y += plusCnt;
         } else {
@@ -871,7 +866,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
         // 5.send Xp-axis pluse
         degree = m_Xp.toFloat();
-        plusCnt = -(int)ConfigParse::getInstance().getXp() * degree / 0.25;
+        plusCnt = -(int)CFG_PARSE.getXp() * degree / 0.25;
         if (!str.contains("C00")) {
             plus_Xp += plusCnt;
         } else {
@@ -896,7 +891,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
     // 3.send beta-axis pluse
     degree = m_beta.toFloat();
-    plusCnt = -(int)ConfigParse::getInstance().getBeta() * degree / 0.45;
+    plusCnt = -(int)CFG_PARSE.getBeta() * degree / 0.45;
 
     if (!str.contains("C00") && !str.contains("C05") && !str.contains("C06")) {
         plus_beta += plusCnt;
@@ -926,7 +921,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
     // 4.send gamma-axis pluse
     degree = m_gamma.toFloat();
-    plusCnt = (int)ConfigParse::getInstance().getGamma() * degree / 0.55;
+    plusCnt = (int)CFG_PARSE.getGamma() * degree / 0.55;
     if (!str.contains("C00") && !str.contains("C06")) {
         plus_gamma += plusCnt;
     } else {
@@ -1063,7 +1058,7 @@ void TestAction::saveUnitCSVData(const QString& itemSn, const QString& result, c
     qDebug() << Conents;
 
     SingletonMutex::getInstance().lock();
-    QString filePaths = QString::fromStdString(ConfigParse::getInstance().getLogPath()) + "Summary/"
+    QString filePaths = QString::fromStdString(CFG_PARSE.getLogPath()) + "Summary/"
                         + QDateTime::currentDateTime().toString("yyyy-MM-dd") + "/";
     FileTool::writeContentWithPath(titleStr, Conents, filePaths, "summary.csv");
     SingletonMutex::getInstance().unlock();
@@ -1104,6 +1099,11 @@ TestAction::~TestAction()
 {
     if (NULL != m_devices) {
         killAllDevice(m_devices);
+    }
+    if (NULL != device_th) {
+        device_th->quit();
+        device_th->wait();
+        device_th = NULL;
     }
 }
 
@@ -1187,21 +1187,21 @@ void TestAction::saveRawdataToLocalFile(const QString& filePath, const QString& 
         for (size_t idx = 0; idx < fileFormat.numOfRows() - 1; idx++) {
             const char* rowStr = (char*)fileData + fileFormat.rowStartPos(idx);
             std::string itemVoltage(rowStr + fileFormat.itemStartPos(idx, 0), fileFormat.itemLen(idx, 0));
-            csvContent << ConfigParse::getInstance().getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
+            csvContent << CFG_PARSE.getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
         }
     } else if (groupName == "Noise") {
         csvContent << "TIME[S],CHannel1_Current[uA]\n";
         for (size_t idx = 0; idx < fileFormat.numOfRows() - 1; idx++) {
             const char* rowStr = (char*)fileData + fileFormat.rowStartPos(idx);
             std::string itemVoltage(rowStr + fileFormat.itemStartPos(idx, 0), fileFormat.itemLen(idx, 0));
-            csvContent << ConfigParse::getInstance().getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
+            csvContent << CFG_PARSE.getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
         }
     } else {
         csvContent << "TIME[S],CHannel1_Current[uA]\n";
         for (size_t idx = 0; idx < fileFormat.numOfRows() - 1; idx++) {
             const char* rowStr = (char*)fileData + fileFormat.rowStartPos(idx);
             std::string itemVoltage(rowStr + fileFormat.itemStartPos(idx, 0), fileFormat.itemLen(idx, 0));
-            csvContent << ConfigParse::getInstance().getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
+            csvContent << CFG_PARSE.getTimeStep() * (idx + 1) << "," << itemVoltage << "\n";
         }
     }
     FileTool::writeContentWithPath("", QString::fromStdString(csvContent.str()), filePath, fileName);
@@ -1297,7 +1297,7 @@ void TestAction::initTcpSocketForHandler()
                     tcpClientSendData("Grip#0$");
                 }
             } else if (tmpStr.contains("StartTest#")) {
-                if (ConfigParse::getInstance().getAuthority() == User::Invalid) {
+                if (CFG_PARSE.getAuthority() == User::Invalid) {
                     QMessageBox::warning(NULL, tr("Warning"), tr("You can't start test, please login first!"));
                     return;
                 }
@@ -1316,18 +1316,23 @@ void TestAction::initTcpSocketForHandler()
                     projectID_ST = projectID_ST.replace("$", "");
                     trial_ST = infoArray[7];
                     trial_ST = trial_ST.replace("$", "");
-                    if (lotName_ST.toStdString() != ConfigParse::getInstance().getLotName()) {
+                    if (lotName_ST.toStdString() != CFG_PARSE.getLotName()) {
                         int ret = -1;
                         emit getLotName(lotName_ST, ret);
                         if (ret == 0) {
-                            ConfigParse::getInstance().setTestInfo(KLotName, lotName_ST.toStdString());
+                            CFG_PARSE.setTestInfo(KLotName, lotName_ST.toStdString());
                         } else {
                             return;
                         }
                     }
 
                     emit updateUIInfo(opID_ST, lotName_ST, productionMode_ST, siteID_ST, projectID_ST);
-                    emit unitStart(unitNum, sn_ST);
+
+                    m_mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unit"
+                                     + std::to_string(unitNum + offsetNum) + "/" + sn_ST.toStdString() + "/"
+                                     + QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toStdString();
+
+                    emit unitStart(unitNum, sn_ST, m_mtcpFilePath);
 
                     tcpClientSendData("StartTest#1$");
                 } else {
@@ -1599,14 +1604,18 @@ void TestAction::onLoopStart(int _slot)
     if (_slot != unitNum)
         return;
 
-    if (ConfigParse::getInstance().getAuthority() == User::Invalid) {
+    if (CFG_PARSE.getAuthority() == User::Invalid) {
         QMessageBox::warning(NULL, tr("Warning"), tr("You can't start test, please login first!"));
         return;
     }
 
     // todo 这里需要添加一些电机动作
     emit updateUIInfo(QString("Op123"), QString("Lot001"), QString("MP"), QString("RS"), QString("P1"));
-    emit unitStart(unitNum, QString("SNASDFJY365GDTRE1"));
+    CFG_PARSE.setTestInfo(KLotName, "Lot001");
+    m_mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unit"
+                     + std::to_string(unitNum + offsetNum) + "/SNASDFJY365GDTRE1/"
+                     + QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toStdString();
+    emit unitStart(unitNum, "SNASDFJY365GDTRE1", m_mtcpFilePath);
 }
 
 void TestAction::onLoopStop(int _slot)

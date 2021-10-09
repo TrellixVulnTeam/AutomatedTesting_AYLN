@@ -32,7 +32,7 @@ UnitsForm::UnitsForm(QWidget* parent, qint16 _slot) : QWidget(parent), unitSlot(
     m_mouseTimer = new QTimer(this);
     connect(m_mouseTimer, &QTimer::timeout, this, &UnitsForm::onMouseClick);
     connect(ui->originBtn, &QPushButton::clicked, [&]() {
-        User::Authority authority = ConfigParse::getInstance().getAuthority();
+        User::Authority authority = CFG_PARSE.getAuthority();
         if (authority != User::Invalid && authority != User::Operator)
             emit originBtnClicked();
         else
@@ -203,7 +203,7 @@ void UnitsForm::mouseDoubleClickEvent(QMouseEvent* event)
     Q_UNUSED(event);
     m_mouseTimer->stop();
 
-    User::Authority authority = ConfigParse::getInstance().getAuthority();
+    User::Authority authority = CFG_PARSE.getAuthority();
     if (authority != User::Invalid)
         emit doubleMouseClick(unitSlot);
 }
@@ -211,7 +211,7 @@ void UnitsForm::mouseDoubleClickEvent(QMouseEvent* event)
 void UnitsForm::onMouseClick()
 {
     m_mouseTimer->stop();
-    User::Authority authority = ConfigParse::getInstance().getAuthority();
+    User::Authority authority = CFG_PARSE.getAuthority();
     if (authority != User::Invalid)
         if (testStatue != TESTING && getEnable())
             singleDialog->exec();
