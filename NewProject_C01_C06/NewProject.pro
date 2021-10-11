@@ -162,6 +162,9 @@ win32{
     INCLUDEPATH += $$LIBS_PATH/include/Algo/
     INCLUDEPATH += $$LIBS_PATH/include/Mtcp/
 
+    PY_PATH = $$TM_SOURCE_TREE/Python
+    PY_PATH ~= s,/,\\,g
+
     DEST_DIR = $$DESTDIR
     DEST_DIR ~= s,/,\\,g
     Config_DIR = $$DESTDIR\Config
@@ -181,6 +184,9 @@ win32{
 #    system(copy /y $$THRID_CONFIG\*.xml $$Config_DIR)
 #    system(copy /y $$THRID_CONFIG\*.csv $$Config_DIR)
     system(xcopy /y /e $$THRID_CONFIG $$Config_DIR)
+
+    system(mkdir $$DEST_DIR\Python)
+    system(xcopy /s /y /e $$PY_PATH $$DEST_DIR\Python)
 
     system(copy /y $$THRID_LIB_PATH\\$$TEST_MODE\\$$Mode\*.dll $$DEST_DIR)
     system(copy /y $$THRID_LIB_PATH\\$$TEST_MODE\\$$Mode\*.exe $$DEST_DIR)
