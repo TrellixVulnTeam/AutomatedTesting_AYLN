@@ -70,7 +70,7 @@
           <enum>Qt::AutoText</enum>
          </property>
          <property name="pixmap">
-          <pixmap resource="../Resources/Project.qrc">:/Icons/user.png</pixmap>
+          <pixmap resource="../Resources/Project.qrc">:/Icons/user2.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>

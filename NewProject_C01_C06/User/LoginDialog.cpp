@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QDesktopWidget>
 #include <QApplication>
+#include <QDebug>
 #include "UserManagerDialog.h"
 #include "LoginDialog.h"
 
@@ -23,6 +24,11 @@ LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent)
     m_loginPwdLineEdit->setEchoMode(QLineEdit::Password);
     m_loginInBtn = new QPushButton(tr("Login"), this);
     m_cancelBtn = new QPushButton(tr("Cancel"), this);
+
+    QString qss = "QPushButton{border:2px solid gray;border-radius:5px;}"
+                  "QPushButton:hover{border: 2px solid black;}";
+    m_loginInBtn->setStyleSheet(qss);
+    m_cancelBtn->setStyleSheet(qss);
 
     grid->addWidget(m_loginIconLab, 0, 1);
     grid->addWidget(m_loginNameLab, 1, 0);

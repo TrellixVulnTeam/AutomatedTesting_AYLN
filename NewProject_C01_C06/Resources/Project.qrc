@@ -18,7 +18,6 @@
         <file>Debug/home.png</file>
         <file>Debug/nextt.png</file>
         <file>Debug/previous.png</file>
-        <file>Debug/tab.png</file>
         <file>Debug/btncheckoff.png</file>
         <file>Debug/btncheckon.png</file>
         <file>Debug/JCiT.png</file>
@@ -30,10 +29,9 @@
     </qresource>
     <qresource prefix="/">
         <file>Icons/user.png</file>
+        <file>Icons/user2.png</file>
         <file>Icons/clearResult.png</file>
-        <file>MainUI/DUTRunSpinner.gif</file>
         <file>MainUI/SingleUUTInfo.png</file>
-        <file>MainUI/logo.png</file>
         <file>Icons/btn_casesensitive.png</file>
         <file>Icons/btn_matchall.png</file>
         <file>Icons/btn_next.png</file>
