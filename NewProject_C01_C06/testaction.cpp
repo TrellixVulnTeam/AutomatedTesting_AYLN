@@ -36,8 +36,10 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
     list_Beta = list[4 + 5 * unitNum].split(",");
     list_Gamma = list[5 + 5 * unitNum].split(",");
 
+    m_process = std::shared_ptr<QProcess>(new QProcess);
     connect(this, &TestAction::showWarning, this, &TestAction::onShowWarning);
     connect(this, &TestAction::showInfo, this, &TestAction::onShowInfo);
+    connect(this, &TestAction::startProcess, this, &TestAction::onStartProcess, Qt::BlockingQueuedConnection);
 }
 
 void TestAction::reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestplaninfo,
@@ -106,16 +108,13 @@ void TestAction::run()
     plus_Xp = 0;
     plus_Y = 0;
     plus_Z = 0;
-    m_logPath = QString::fromStdString(CFG_PARSE.getLogPath())
-                + QString("Unit%1/%2/%3/")
-                      .arg(unitNum + offsetNum)
-                      .arg(itemSn)
-                      .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+    m_logPath =
+        QString::fromStdString(CFG_PARSE.getLogPath()) + QString("Unit%1/%2/").arg(unitNum + offsetNum).arg(itemSn);
     MLOG_INFO("Log path: " + m_logPath);
 
     deviceLogPath = m_logPath + "DeviceLog/";
-    rawDataPath = m_logPath + "RawData/" + QDateTime::currentDateTime().toString("yyyyMMddhhmmss") + "/";
-    convertDataPath = m_logPath + "ConvertData/" + QDateTime::currentDateTime().toString("yyyyMMddhhmmss") + "/";
+    rawDataPath = m_logPath + "RawData/";
+    convertDataPath = m_logPath + "ConvertData/";
     outputDataPath = m_logPath + "OutputData/";
     outputDataTime = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
     lotFilePath =
@@ -201,8 +200,7 @@ void TestAction::run()
                                                   .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                   .arg(cmdStr)
                                                   .arg(response2);
-                                FileTool::writeContentWithPath("", msg, deviceLogPath,
-                                                               QString("serialport_%1.txt").arg(outputDataTime));
+                                FileTool::writeContentWithPath("", msg, deviceLogPath, QString("serialport.txt"));
                             }
 
                             // wait for socket data ready
@@ -255,14 +253,12 @@ void TestAction::run()
                                                   .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                   .arg(cmdStr)
                                                   .arg(QString::fromUtf8(response));
-                                FileTool::writeContentWithPath("", msg, deviceLogPath,
-                                                               QString("serialport_%1.txt").arg(outputDataTime));
+                                FileTool::writeContentWithPath("", msg, deviceLogPath, QString("serialport.txt"));
                             } else {
                                 QString msg = QString("%1 TcpSocket cmd:%2 response:rawdata\n")
                                                   .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                   .arg(cmdStr);
-                                FileTool::writeContentWithPath("", msg, deviceLogPath,
-                                                               QString("serialport_%1.txt").arg(outputDataTime));
+                                FileTool::writeContentWithPath("", msg, deviceLogPath, QString("serialport.txt"));
                             }
                         }
                     }
@@ -409,11 +405,26 @@ void TestAction::run()
     response.clear();
     response2.clear();
 
-    emit stopTimer(unitNum, testResult);
-
     m_devices->clearBuffer();
+
+    MLOG_INFO("Start compressing files");
+    const QString appDir = QApplication::applicationDirPath();
+    const QString pyPath = appDir + "/Python/python36/python.exe";
+    const QString pyFilePath = appDir + "/Python/TestPkg.py";
+    const QString logPath = QString::fromStdString(CFG_PARSE.getLogPath()) + QString("Unit%1").arg(offsetNum);
+    const QString cmd = pyPath + " " + pyFilePath + " -z " + logPath + "/" + sn_ST + " -d " + logPath;
+    MLOG_INFO(cmd);
+
+    emit startProcess(cmd);
+
+    emit stopTimer(unitNum, testResult);
     MLOG_INFO("End run thread.\n\n");
     quit();
+}
+
+void TestAction::onStartProcess(const QString& cmd)
+{
+    m_process->start(cmd);
 }
 
 void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, void* context)
@@ -424,8 +435,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
 
             if (recv.length() > 200) {
                 pthis->rawDataFilePath = pthis->convertDataPath;
-                pthis->rawDataFileName =
-                    tempItem->Group + "_" + QDateTime::currentDateTime().toString("yyyyMMddhhmmss") + ".csv";
+                pthis->rawDataFileName = tempItem->Group + ".csv";
 
                 std::string resStr = recv.toStdString();
                 QByteArray fileStr;
@@ -504,15 +514,14 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
 
                 if (tempItem->Group != "Offset") {
                     if (tempItem->Group == "Noise") {
-                        pthis->outputPath =
-                            pthis->outputDataPath + "Noise/" + pthis->outputDataTime + "/" + tempItem->Group + "/";
+                        pthis->outputPath = pthis->outputDataPath + "Noise/" + tempItem->Group + "/";
                         Util::MakeNDir(pthis->outputPath.toStdString());
                         pthis->palgo->jptProcessSingleNoise(pthis->outputPath, timeData, voltageData, dataSize);
                         //                                        palgo->jptProcessSingleNoiseDemo(rawDataFilePath,
                         //                                        rawDataFileName, outputPath);
                     } else {
-                        pthis->outputPath = pthis->outputDataPath + "SingleStream/DC_Coupled/" + "/"
-                                            + pthis->outputDataTime + "/" + tempItem->Group + "/";
+                        pthis->outputPath =
+                            pthis->outputDataPath + "SingleStream/DC_Coupled/" + "/" + tempItem->Group + "/";
                         Util::MakeNDir(pthis->outputPath.toStdString());
 
                         float targetAngle;
@@ -674,7 +683,7 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
                                            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                            .arg(cmd_Y)
                                            .arg(repStr),
-                                       deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                       deviceLogPath, QString("serialport.txt"));
 
         logStr.append(QString("\n cmd:%1 response:%2").arg(cmd_Y).arg(repStr));
         QThread::msleep(100);
@@ -689,7 +698,7 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
                                            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                            .arg(cmd_Z)
                                            .arg(repStr),
-                                       deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                       deviceLogPath, QString("serialport.txt"));
         logStr.append(QString("\n cmd:%1 response:%2").arg(cmd_Z).arg(repStr));
         QThread::msleep(1000);
     }
@@ -950,7 +959,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                    .arg(cmdStr)
                                                    .arg(repStr),
-                                               deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                               deviceLogPath, QString("serialport.txt"));
             } else {
 
                 QThread::msleep(50);
@@ -963,7 +972,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                    .arg(cmdStr)
                                                    .arg(repStr),
-                                               deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                               deviceLogPath, QString("serialport.txt"));
             }
         } else {
             if (i < 2) {
@@ -978,7 +987,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                    .arg(cmdStr)
                                                    .arg(repStr),
-                                               deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                               deviceLogPath, QString("serialport.txt"));
             } else {
                 QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                           Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr), Q_ARG(float, 10));
@@ -989,7 +998,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
                                                    .arg(cmdStr)
                                                    .arg(repStr),
-                                               deviceLogPath, QString("serialport_%1.txt").arg(outputDataTime));
+                                               deviceLogPath, QString("serialport.txt"));
             }
         }
         logStr.append(QString("\n motor response:%1").arg(repStr));
@@ -1081,6 +1090,10 @@ void TestAction::killAllDevice(ConfigDevice* tempConfigDevice)
 
 TestAction::~TestAction()
 {
+    if (nullptr != m_process) {
+        m_process->kill();
+    }
+
     if (NULL != m_devices) {
         killAllDevice(m_devices);
     }

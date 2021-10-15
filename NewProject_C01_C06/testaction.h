@@ -6,6 +6,7 @@
 #include <items.h>
 #include <configdevice.h>
 #include <QMetaObject>
+#include <QProcess>
 #include <QMutex>
 #include <filetool.h>
 #include <string.h>
@@ -84,6 +85,8 @@ public:
     void reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestplaninfo,
                         const std::shared_ptr<TestPlanInfo>& tempFlowinfo, const QString& positionStr);
 
+    static void onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, void* context);
+
 public:
     QString itemSn;
     QString uiInfo;
@@ -107,6 +110,7 @@ signals:
     void connectDevices(std::map<std::string, DeviceInfo>& devicMap, const QString& soltNum);
     void getLotName(const QString& lotName, int& ret);
     void savePivotFile(const QString& path, int& ret);
+    void startProcess(const QString& cmd);
 
 public slots:
     void algoReleaseSystem();
@@ -117,7 +121,7 @@ public slots:
     void onLoopStop(int _slot);
     void onShowWarning(const QString& msg);
     void onShowInfo(const QString& msg);
-    static void onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, void* context);
+    void onStartProcess(const QString& cmd);
 
 private:
     bool openCylinder();
@@ -155,6 +159,7 @@ private:
     AlgoSingleTon* palgo = NULL;
     QTcpSocket* tcpClient = NULL;
     ConfigDevice* m_devices = NULL;
+    std::shared_ptr<QProcess> m_process = nullptr;
 
     int offsetNum;
     int unitNum;

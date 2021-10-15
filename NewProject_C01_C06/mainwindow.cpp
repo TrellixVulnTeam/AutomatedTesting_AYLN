@@ -22,6 +22,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     dcInitializeModule(NULL);
     LOG_INFO("[Main] Initialize Matlab");
 
+#ifdef LzgDebug
+    CFG_PARSE.setTestInfo(KMtcp, false);
+    LOG_INFO("[Main] Run debug mode on Zhigen computer!");
+#else
+    LOG_INFO("[Main] Run debug mode on other computer!");
+#endif
+
     totalNum = 0;
 
     m_testplan_tool =

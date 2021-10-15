@@ -180,9 +180,16 @@ win32{
     THRID_LIB_PATH ~= s,/,\\,g
     TM_APP_PATH ~= s,/,\\,g
 
+    # this code only used on my computer
+    tmp = $$PWD SomeElse
+    if(contains(tmp,C:/Users/Zhigen/Desktop/AutomatedTesting/NewProject_C01_C06)){
+        DEFINES += LzgDebug
+        message(Run debug mode on Zhigen computer!)
+    }else{
+        message(Run release mode on other computer!)
+    }
+
     system(mkdir $$Config_DIR)
-#    system(copy /y $$THRID_CONFIG\*.xml $$Config_DIR)
-#    system(copy /y $$THRID_CONFIG\*.csv $$Config_DIR)
     system(xcopy /y /e $$THRID_CONFIG $$Config_DIR)
 
     system(mkdir $$DEST_DIR\Python)
