@@ -10,7 +10,7 @@
 	<SpecCsvPath>[App]/Config/TestSpec_DOE.csv</SpecCsvPath>
 	<PositionCsvPath>[App]/Config/Position.csv</PositionCsvPath>
 	<MachineID>MOS001</MachineID>
-	<MTCP>FALSE</MTCP>
+	<MTCP>TRUE</MTCP>
 	<MtcpIP>127.0.0.1</MtcpIP>
 	<MtcpPort>6666</MtcpPort>
 	<MES>FALSE</MES>
@@ -24,15 +24,15 @@
 	<Z>5000</Z>
 	<TimeStep>0.0000016</TimeStep>
 	<Device>
-		<Unit target="Uart" path="CB031" num="115200" ref="TEST_Uart41" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB032" num="115200" ref="TEST_Uart42" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB041" num="115200" ref="TEST_Uart51" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB042" num="115200" ref="TEST_Uart52" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB051" num="115200" ref="TEST_Uart61" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB052" num="115200" ref="TEST_Uart62" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.252" num="8800" ref="TEST_Socket4" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.251" num="8800" ref="TEST_Socket5" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.250" num="8800" ref="TEST_Socket6" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM1" num="115200" ref="TEST_Uart41" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM3" num="115200" ref="TEST_Uart42" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM5" num="115200" ref="TEST_Uart51" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM7" num="115200" ref="TEST_Uart52" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM9" num="115200" ref="TEST_Uart61" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Uart" path="COM11" num="115200" ref="TEST_Uart62" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="127.0.0.1" num="8801" ref="TEST_Socket4" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="127.0.0.1" num="8802" ref="TEST_Socket5" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+		<Unit target="Socket" path="127.0.0.1" num="8803" ref="TEST_Socket6" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
 		<Group target="Uart" path="cu.usbserial-FIXMB" num="115200" ref="CTR_Uart" timeout="2" suffix="\r\n" exist="FALSE" Property="TRUE"/>
 		<Group target="Socket" path="127.0.0.1" num="6001" ref="CTR_Socket" timeout="2" suffix="[DONE]" exist="FALSE" Property="TRUE"/>
 	</Device>

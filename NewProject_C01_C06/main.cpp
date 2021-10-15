@@ -47,11 +47,20 @@ int main(int argc, char* argv[])
             qssFile.close();
         }
 
+#ifdef LzgDebug
+#ifdef Q_OS_MAC
+        QString configPath = QApplication::applicationDirPath().replace("MacOS", "Resources/Config_Debug.xml");
+#else;
+        QString configPath = QApplication::applicationDirPath() + "/Config/Config_Debug.xml";
+#endif
+#else
 #ifdef Q_OS_MAC
         QString configPath = QApplication::applicationDirPath().replace("MacOS", "Resources/Config.xml");
 #else;
         QString configPath = QApplication::applicationDirPath() + "/Config/Config.xml";
 #endif
+#endif
+
         INIT_LOG("D:\\vault\\JCiT\\TestManagerLog\\TestManager.log");
         CFG_PARSE.prestrain(configPath.toStdString());
         LOG_INFO("[Main] Preloads the configuration file");
