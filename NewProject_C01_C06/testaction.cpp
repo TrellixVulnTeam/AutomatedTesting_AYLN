@@ -207,7 +207,7 @@ void TestAction::run()
                             std::chrono::milliseconds timespan((long long)tempItem->Timeout1);
                             auto start = std::chrono::steady_clock::now();
 
-                            while (m_isSendOnly) {
+                            while (m_isSendOnly && !m_loopStopFlag) {
                                 QApplication::processEvents();
                                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                                 std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
@@ -407,17 +407,17 @@ void TestAction::run()
     response2.clear();
 
     m_devices->clearBuffer();
-    emit stopTimer(unitNum, testResult);
 
     MLOG_INFO("Start compressing files");
     const QString appDir = QApplication::applicationDirPath();
     const QString pyPath = appDir + "/Python/python36/python.exe";
     const QString pyFilePath = appDir + "/Python/TestPkg.py";
-    const QString logPath = QString::fromStdString(CFG_PARSE.getLogPath()) + QString("Unit%1").arg(offsetNum);
+    const QString logPath = QString::fromStdString(CFG_PARSE.getLogPath()) + QString("Unit%1").arg(offsetNum + unitNum);
     const QString cmd = pyPath + " " + pyFilePath + " -z " + logPath + "/" + sn_ST + " -d " + logPath;
     MLOG_INFO(cmd);
 
     emit startProcess(cmd);
+    emit stopTimer(unitNum, testResult);
     MLOG_INFO("End run thread.\n\n");
     quit();
 }
@@ -425,6 +425,7 @@ void TestAction::run()
 void TestAction::onStartProcess(const QString& cmd)
 {
     m_process->start(cmd);
+    //    m_process->execute(cmd);
 }
 
 void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, void* context)
@@ -1619,7 +1620,9 @@ void TestAction::onLoopStart(int _slot)
     m_mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unit"
                      + std::to_string(unitNum + offsetNum) + "/SNASDFJY365GDTRE1/"
                      + QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toStdString();
-    emit unitStart(unitNum, "SNASDFJY365GDTRE1", m_mtcpFilePath);
+
+    sn_ST = "SNASDFJY365GDTRE1";
+    emit unitStart(unitNum, sn_ST, m_mtcpFilePath);
 }
 
 void TestAction::onLoopStop(int _slot)
@@ -1633,6 +1636,7 @@ void TestAction::onLoopStop(int _slot)
 void TestAction::onShowWarning(const QString& msg)
 {
     MLOG_WARN(msg);
+    m_loopStopFlag = true;
     emit stopLoopTestWhileError(unitNum);
     QMessageBox::warning(NULL, tr("Warning-Unit%1").arg(unitNum + 1), msg);
 }
