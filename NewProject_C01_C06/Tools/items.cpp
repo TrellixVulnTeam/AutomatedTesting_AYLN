@@ -21,7 +21,7 @@ Items::Items(QJsonObject& jsonObject, int& index, QObject* parent) : QObject(par
     LogicFunction = jsonObject.value("LogicFunction").toString();
     StartStr = jsonObject.value("StartStr").toString();
     EndStr = jsonObject.value("EndStr").toString();
-    Timeout = jsonObject.value("Timeout").toString();
+    Timeout1 = jsonObject.value("Timeout").toDouble();
     Retry = jsonObject.value("Retry").toString();
     isBreak = jsonObject.value("isBreak").toString();
     SaveGlobal = jsonObject.value("SaveGlobal").toString();
@@ -63,7 +63,16 @@ Items::Items(const QList<QString>& contentList, const int IndexNum, QObject* par
     LogicFunction = contentList[num++];
     StartStr = contentList[num++];
     EndStr = contentList[num++];
-    Timeout = contentList[num++];
+
+    QString timeoutStr = contentList[num++];
+    if (timeoutStr.contains(";")) {
+        QStringList l = timeoutStr.split(";");
+        Timeout1 = l.at(0).toDouble();
+        Timeout2 = l.at(1).toDouble();
+    } else {
+        Timeout1 = timeoutStr.toDouble();
+    }
+
     Retry = contentList[num++];
     isBreak = contentList[num++];
     SaveGlobal = contentList[num++];

@@ -193,7 +193,7 @@ void TestAction::run()
                                 QMetaObject::invokeMethod(deviceObject_Uart1, tempItem->Function.toStdString().c_str(),
                                                           Qt::BlockingQueuedConnection,
                                                           Q_RETURN_ARG(QString, response2), Q_ARG(QString, cmdStr),
-                                                          Q_ARG(float, 5));
+                                                          Q_ARG(float, tempItem->Timeout1 / 1000.0));
                                 otherLog.append(QString("\n cmd:%1 response:%2").arg(response2).arg(cmdStr));
 
                                 QString msg = QString("%1 Uart1 cmd:%2 response:%3\n")
@@ -204,7 +204,7 @@ void TestAction::run()
                             }
 
                             // wait for socket data ready
-                            std::chrono::milliseconds timespan(20000);
+                            std::chrono::milliseconds timespan((long long)tempItem->Timeout1);
                             auto start = std::chrono::steady_clock::now();
 
                             while (m_isSendOnly) {
@@ -237,7 +237,8 @@ void TestAction::run()
                             if (tempItem->Function == "sendDataWithResponse") {
                                 QMetaObject::invokeMethod(deviceObject, tempItem->Function.toStdString().c_str(),
                                                           Qt::BlockingQueuedConnection, Q_ARG(QString, cmdStr),
-                                                          Q_ARG(float, 20), Q_ARG(Items*, tempItem));
+                                                          Q_ARG(float, tempItem->Timeout1 / 1000.0),
+                                                          Q_ARG(Items*, tempItem));
                             } else {
                                 m_isSendOnly = true;
                                 QMetaObject::invokeMethod(deviceObject, tempItem->Function.toStdString().c_str(),
@@ -406,6 +407,7 @@ void TestAction::run()
     response2.clear();
 
     m_devices->clearBuffer();
+    emit stopTimer(unitNum, testResult);
 
     MLOG_INFO("Start compressing files");
     const QString appDir = QApplication::applicationDirPath();
@@ -416,8 +418,6 @@ void TestAction::run()
     MLOG_INFO(cmd);
 
     emit startProcess(cmd);
-
-    emit stopTimer(unitNum, testResult);
     MLOG_INFO("End run thread.\n\n");
     quit();
 }
@@ -666,17 +666,20 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
     if (!cmd_Y.isEmpty()) {
         QString tcmd = "SET_pcb[0x1,0x84,0x41,0x0,0x0,0x0,0x0,0x0]";
         QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd), Q_ARG(float, 5));
+                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd),
+                                  Q_ARG(float, item->Timeout1 / 1000.0));
 
         QThread::msleep(100);
 
         tcmd = "SET_pcb[0x1,0x82,0x41,0x3,0xef,0xff,0xff,0xff]";
         QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd), Q_ARG(float, 5));
+                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd),
+                                  Q_ARG(float, item->Timeout1 / 1000.0));
         QThread::msleep(100);
 
         QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Y), Q_ARG(float, 5));
+                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Y),
+                                  Q_ARG(float, item->Timeout1 / 1000.0));
 
         FileTool::writeContentWithPath("",
                                        QString("%1 Uart2 cmd:%2 response:%3\n")
@@ -691,7 +694,8 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
 
     if (!cmd_Z.isEmpty()) {
         QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Z), Q_ARG(float, 5));
+                                  Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Z),
+                                  Q_ARG(float, item->Timeout1 / 1000.0));
 
         FileTool::writeContentWithPath("",
                                        QString("%1 Uart2 cmd:%2 response:%3\n")
@@ -950,7 +954,8 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
         if (str.contains("C01")) {
             if (i == 1 || i == 2) {
                 QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr), Q_ARG(float, 10));
+                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
+                                          Q_ARG(float, item->Timeout2 / 1000.0));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 QThread::msleep(50);
@@ -964,7 +969,8 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 
                 QThread::msleep(50);
                 QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr), Q_ARG(float, 10));
+                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
+                                          Q_ARG(float, item->Timeout2 / 1000.0));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 FileTool::writeContentWithPath("",
@@ -977,7 +983,8 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
         } else {
             if (i < 2) {
                 QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr), Q_ARG(float, 10));
+                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
+                                          Q_ARG(float, item->Timeout2 / 1000.0));
 
                 QThread::msleep(100);
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
@@ -990,7 +997,8 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                                                deviceLogPath, QString("serialport.txt"));
             } else {
                 QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
-                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr), Q_ARG(float, 10));
+                                          Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
+                                          Q_ARG(float, item->Timeout2 / 1000.0));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 FileTool::writeContentWithPath("",

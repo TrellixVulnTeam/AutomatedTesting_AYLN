@@ -31,7 +31,8 @@ public:
     QString LogicFunction;
     QString StartStr;
     QString EndStr;
-    QString Timeout;
+    double Timeout1 = 5000;
+    double Timeout2 = 5000;
     QString Retry;
     QString isBreak;
     QString SaveGlobal;

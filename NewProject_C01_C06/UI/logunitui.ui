@@ -195,7 +195,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>查找</string>
+        <string>Seek</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
