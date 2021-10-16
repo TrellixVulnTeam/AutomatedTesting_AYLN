@@ -22,6 +22,7 @@ static std::string KVersion = "Version";
 static std::string KConfig = "Config";
 static std::string KLogPath = "LogPath";
 static std::string KUnitCount = "UnitCount";
+static std::string KOffset = "Offset";
 static std::string KMachineID = "MachineID";
 static std::string KSlot = "Slot";
 static std::string KIsChoose = "IsChoose";
@@ -85,10 +86,16 @@ public:
     void setTestInfo(const std::string& node, const double value);
     void setTestInfo(const std::string& node, const std::vector<bool>& values);
     void setTestInfo(const std::string& node, const std::vector<std::string>& values);
+    void setUnitInfo(const std::vector<DeviceInfo>& info);
 
     int getUnitCount() const
     {
         return m_unitCount;
+    }
+
+    int getOffset() const
+    {
+        return m_offset;
     }
 
     std::string getSlot() const
@@ -361,6 +368,7 @@ private:
 private:
     std::mutex _mutex;
     int m_unitCount = 3;
+    int m_offset = 0;
     int m_alpha = 36000;
     int m_beta = 500;
     int m_gamma = 500;

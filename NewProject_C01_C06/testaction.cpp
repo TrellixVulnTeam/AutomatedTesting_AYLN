@@ -9,7 +9,7 @@
 TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& tempTestplaninfo,
                        const std::shared_ptr<TestPlanInfo>& tempFlowinfo, const QString& positionStr)
 {
-    offsetNum = 4;
+    offsetNum = CFG_PARSE.getOffset();
     unitNum = num;
     m_testSpecTool = tempTestplaninfo;
     m_testFlowTool = tempFlowinfo;

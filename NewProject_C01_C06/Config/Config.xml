@@ -2,6 +2,8 @@
 	<ProjectName>X2155 Station</ProjectName>
 	<Version>V1.0.0</Version>
 	<Config>Cfg0001</Config>
+	<!--Offset must be over 0-->
+	<Offset>4</Offset>
 	<UnitCount>3</UnitCount>
 	<LogPath>D:/vault/JCiT/</LogPath>
 	<LotName>Lot999</LotName>

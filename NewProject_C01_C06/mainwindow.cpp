@@ -25,8 +25,45 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 #ifdef LzgDebug
     CFG_PARSE.setTestInfo(KMtcp, false);
     LOG_INFO("[Main] Run debug mode on Zhigen computer!");
+
+    std::vector<DeviceInfo> infos;
+    for (int i = 0; i < 6; i++) {
+        DeviceInfo info("", QString("COM%1").arg(i * 2 + 1).toStdString(), -1, "", -1, "", true, true);
+        infos.push_back(info);
+    }
+
+    for (int i = 0; i < 3; i++) {
+        DeviceInfo info("", "127.0.0.1", 8800 + i + 1, "", -1, "", true, true);
+        infos.push_back(info);
+    }
+
+    CFG_PARSE.setUnitInfo(infos);
+
 #else
     LOG_INFO("[Main] Run debug mode on other computer!");
+
+    std::vector<DeviceInfo> infos;
+    for (int i = 0; i < 6; i++) {
+        if (i % 2 == 0) {
+            DeviceInfo info("", QString("CB0%1%2").arg(CFG_PARSE.getOffset() - 1 + i / 2).arg(1).toStdString(), -1,
+                            QString("TEST_Uart%1%2").arg(CFG_PARSE.getOffset() + i / 2).arg(1).toStdString(), -1, "",
+                            true, true);
+            infos.push_back(info);
+        } else {
+            DeviceInfo info("", QString("CB0%1%2").arg(CFG_PARSE.getOffset() - 1 + i / 2).arg(2).toStdString(), -1,
+                            QString("TEST_Uart%1%2").arg(CFG_PARSE.getOffset() + i / 2).arg(2).toStdString(), -1, "",
+                            true, true);
+            infos.push_back(info);
+        }
+    }
+
+    for (int i = 0; i < 3; i++) {
+        DeviceInfo info("", "", -1, QString("TEST_Socket%1").arg(CFG_PARSE.getOffset() + i).toStdString(), -1, "", true,
+                        true);
+        infos.push_back(info);
+    }
+
+    CFG_PARSE.setUnitInfo(infos);
 #endif
 
     totalNum = 0;

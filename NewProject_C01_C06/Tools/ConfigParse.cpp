@@ -125,6 +125,7 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         }
 
         m_unitCount = configurationNode.Child(KUnitCount).Value<int>();
+        m_offset = configurationNode.Child(KOffset).Value<int>();
         m_machineID = configurationNode.Child(KMachineID).Value<std::string>();
         m_slot = configurationNode.Child(KSlot).Value<std::string>();
         m_alpha = configurationNode.Child(KAlpha).Value<int>();
@@ -139,6 +140,7 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         m_Mes = configurationNode.Child(KMes).Value<bool>();
 
         LOG_INFO("[Main] UnitCount: %d", m_unitCount);
+        LOG_INFO("[Main] Offset: %d", m_offset);
         LOG_INFO("[Main] MachineID: %s", m_machineID.c_str());
         LOG_INFO("[Main] Solt: %s", m_slot.c_str());
         LOG_INFO("[Main] Alpha: %d", m_alpha);
@@ -389,5 +391,109 @@ void ConfigParse::setTestInfo(const std::string& node, const std::vector<std::st
     setTestInfoTemplate<std::string>(node, values);
     if (node == KGroupOrder) {
         m_groupOrderVec = static_cast<std::vector<std::string>>(values);
+    }
+}
+
+void ConfigParse::setUnitInfo(const std::vector<DeviceInfo>& info)
+{
+    std::unique_lock<std::mutex> lock(_mutex);
+    XmlNode rootNode;
+    XmlNode::ParseXml(m_pathOfUIConf, rootNode);
+    XmlNode configurationNode = rootNode.Child(KConfiguration);
+
+    bool isChanged = false;
+    if (configurationNode.isValid()) {
+        XmlNode device = configurationNode.Child(KDevice);
+        if (device.isValid()) {
+            const std::vector<XmlNode> unitDevices = device.GetChilds(KUnit);
+
+            int minNum = unitDevices.size() > info.size() ? info.size() : unitDevices.size();
+            for (int i = 0; i < minNum; i++) {
+                XmlNode unitNode = unitDevices[i];
+                DeviceInfo unitInfo = info[i];
+                if (!unitInfo.target.empty() && unitInfo.target != unitNode.Attribute<std::string>("target")) {
+                    unitNode.SetAttribute<std::string>("target", unitInfo.target);
+                    isChanged = true;
+                } else {
+                    unitInfo.target = unitNode.Attribute<std::string>("target");
+                }
+
+                if (!unitInfo.path.empty() && unitInfo.path != unitNode.Attribute<std::string>("path")) {
+                    unitNode.SetAttribute<std::string>("path", unitInfo.path);
+                    isChanged = true;
+                } else {
+                    unitInfo.path = unitNode.Attribute<std::string>("path");
+                }
+
+                if (unitInfo.num != -1 && unitInfo.num != unitNode.Attribute<int>("num")) {
+                    unitNode.SetAttribute<std::string>("num", std::to_string(unitInfo.num));
+                    isChanged = true;
+                } else {
+                    unitInfo.num = unitNode.Attribute<int>("num");
+                }
+
+                std::map<std::string, DeviceInfo>::iterator iter;
+                iter = m_unitDevicesMap.find(unitNode.Attribute<std::string>("ref"));
+                if (iter != m_unitDevicesMap.end()) {
+                    m_unitDevicesMap.erase(iter);
+                }
+
+                if (!unitInfo.ref.empty() && unitInfo.ref != unitNode.Attribute<std::string>("ref")) {
+                    unitNode.SetAttribute<std::string>("ref", unitInfo.ref);
+                    isChanged = true;
+                } else {
+                    unitInfo.ref = unitNode.Attribute<std::string>("ref");
+                }
+
+                if (unitInfo.timeout != -1 && unitInfo.timeout != unitNode.Attribute<int>("timeout")) {
+                    unitNode.SetAttribute<std::string>("timeout", std::to_string(unitInfo.timeout));
+                    isChanged = true;
+                } else {
+                    unitInfo.timeout = unitNode.Attribute<int>("timeout");
+                }
+
+                if (!unitInfo.suffix.empty() && unitInfo.suffix != unitNode.Attribute<std::string>("suffix")) {
+                    unitNode.SetAttribute<std::string>("suffix", unitInfo.suffix);
+                    isChanged = true;
+                } else {
+                    unitInfo.suffix = unitNode.Attribute<std::string>("suffix");
+                }
+
+                if (unitInfo.exist != unitNode.Attribute<bool>("exist")) {
+                    unitNode.SetAttribute<std::string>("exist", unitInfo.exist ? "TRUE" : "FALSE");
+                    isChanged = true;
+                } else {
+                    unitInfo.exist = unitNode.Attribute<bool>("exist");
+                }
+
+                if (unitInfo.Property != unitNode.Attribute<bool>("Property")) {
+                    unitNode.SetAttribute<std::string>("Property", unitInfo.Property ? "TRUE" : "FALSE");
+                    isChanged = true;
+                } else {
+                    unitInfo.Property = unitNode.Attribute<bool>("Property");
+                }
+
+                m_unitDevicesMap.insert(std::pair<std::string, DeviceInfo>(unitInfo.ref, unitInfo));
+            }
+
+            if (info.size() > unitDevices.size()) {
+                // todo: You can add code to save extra information, but I'm very lazy,
+                //       and I think that's enough for now, so I'm not going to write it
+                // ...
+                // ...
+            }
+
+        } else {
+            procError(KDevice);
+            return;
+        }
+    } else {
+        procError(KConfiguration);
+        return;
+    }
+
+    if (isChanged) {
+        rootNode.Save(m_pathOfUIConf);
+        LOG_INFO("[Main] We Changed something for xml.");
     }
 }
