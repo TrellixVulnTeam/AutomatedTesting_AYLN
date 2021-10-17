@@ -115,6 +115,14 @@ void LoginDialog::onUpdateUserSetting(QSettings* setting)
     m_loginNameComboBox->setCurrentText(OPERATOR);
 }
 
+void LoginDialog::autoLogin()
+{
+    // auto login operator
+    m_loginNameComboBox->setCurrentText(OPERATOR);
+    m_loginPwdLineEdit->setText(DEFAULT_PW);
+    emit m_loginInBtn->clicked(true);
+}
+
 void LoginDialog::clickLanguageAction(QTranslator&)
 {
     m_loginNameLab->setText(tr("Name:"));

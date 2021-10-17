@@ -111,6 +111,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(m_loginDialog, &LoginDialog::loginSuccessSignal, this, &MainWindow::onloginSuccess);
     m_userManagerDialog = new UserManagerDialog(this);
     m_loginDialog->onUpdateUserSetting(m_userManagerDialog->getUserSetting());
+    m_loginDialog->autoLogin();
 
     m_aboutDialog = new AboutDialog(this);
     connect(this, &MainWindow::clickLanguageActionSignal, m_aboutDialog, &AboutDialog::onClickLanguageAction);
@@ -146,7 +147,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         testactionList.append(testaction);
     }
 
-    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
+    //    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
 }
 
 void MainWindow::reloadTestPlan()

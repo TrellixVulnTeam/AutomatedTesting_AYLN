@@ -23,6 +23,7 @@ class LoginDialog : public QDialog
 
 public:
     LoginDialog(QWidget* parent = nullptr);
+    void autoLogin();
 
 private:
     QLabel* m_loginIconLab = NULL;
