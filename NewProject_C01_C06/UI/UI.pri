@@ -8,7 +8,10 @@ FORMS += \
     $$PWD/PreferencesDialog.ui \
     $$PWD/AboutDialog.ui \
     $$PWD/SNDialog.ui \
-    $$PWD/LoopTestDialog.ui
+    $$PWD/LoopTestDialog.ui \
+    $$PWD/SportsWidget.ui \
+    $$PWD/PositionDialog.ui \
+    $$PWD/MoveBtn.ui
 
 HEADERS += \
     $$PWD/logunitui.h \
@@ -19,7 +22,10 @@ HEADERS += \
     $$PWD/PreferencesDialog.h \
     $$PWD/AboutDialog.h \
     $$PWD/SNDialog.h \
-    $$PWD/LoopTestDialog.h
+    $$PWD/LoopTestDialog.h \
+    $$PWD/SportsWidget.h \
+    $$PWD/PositionDialog.h \
+    $$PWD/MoveBtn.h
 
 SOURCES += \
     $$PWD/logunitui.cpp \
@@ -30,6 +36,9 @@ SOURCES += \
     $$PWD/PreferencesDialog.cpp \
     $$PWD/AboutDialog.cpp \
     $$PWD/SNDialog.cpp \
-    $$PWD/LoopTestDialog.cpp
+    $$PWD/LoopTestDialog.cpp \
+    $$PWD/SportsWidget.cpp \
+    $$PWD/PositionDialog.cpp \
+    $$PWD/MoveBtn.cpp
 
 INCLUDEPATH +=  $$PWD

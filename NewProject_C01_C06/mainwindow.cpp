@@ -982,3 +982,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
     dcReleaseSystem();
     QMainWindow::closeEvent(event);
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    PositionDialog* pd = new PositionDialog(this);
+    pd->exec();
+}
