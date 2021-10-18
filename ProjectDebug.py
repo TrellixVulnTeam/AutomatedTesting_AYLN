@@ -72,7 +72,7 @@ class UartDebug(object):
             self.recvStr += self.ser.read_all().decode('utf-8')
             if '\r\n' in self.recvStr:
                 print('Uart {} recv: {}'.format(self.port, self.recvStr))
-                self.send(self.recvStr + '[DONE]')
+                self.send(self.recvStr + '[DONE]\r\n')
                 print('Uart {} post: {}'.format(self.port, self.recvStr + '[DONE]'))
                 self.recvStr = ''
 
@@ -156,6 +156,8 @@ class SockDebug(object):
                     print('Unit {} recv: {}'.format(self.port, recv))
                     if 'Register' in recv:
                         conn.send(bytes('Register#1$', encoding='utf-8'))
+                    else:
+                        conn.send(bytes(recv + '[DONE]', encoding='utf-8'))
                 elif self.port == 8801 or self.port == 8802 or self.port == 8803:
                     print('Unit {} recv: {}'.format(self.port, recv))
                     if 'ADCsample' in recv:
@@ -321,7 +323,7 @@ class Ui_MainDialog(QDialog):
         self.unit1Socket.send('Grip#1$')
 
     def unit1StartTest(self):
-        self.unit1Socket.send('StartTest#SNASDFJY365GDTRE1#Op123#Lot001#MP#RS#P1#Config01$')
+        self.unit1Socket.send('StartTest#SNASDFJY365GDTRE1#MachineID01#Op123#Config01#Lot001#MP#RS#P1#Trial01#MesState01#MtcpState01$')
 
     def unit1Result(self):
         self.unit1Socket.send('Result$')
@@ -339,7 +341,7 @@ class Ui_MainDialog(QDialog):
         self.unit2Socket.send('Grip#1$')
 
     def unit2StartTest(self):
-        self.unit2Socket.send('StartTest#SNASDFJY365GDTRE2#Op123#Lot002#OffLine#RS#P1#Config01$')
+        self.unit2Socket.send('StartTest#SNASDFJY365GDTRE2#MachineID01#Op123#Config02#Lot002#MP#RS#P1#Trial02#MesState02#MtcpState02$')
 
     def unit2Result(self):
         self.unit2Socket.send('Result$')
@@ -357,7 +359,7 @@ class Ui_MainDialog(QDialog):
         self.unit3Socket.send('Grip#1$')
 
     def unit3StartTest(self):
-        self.unit3Socket.send('StartTest#SNASDFJY365GDTRE3#Op123#Lot003#MP#RS#P1#Config01$')
+        self.unit3Socket.send('StartTest#SNASDFJY365GDTRE3#MachineID03#Op123#Config03#Lot003#MP#RS#P1#Trial03#MesState03#MtcpState03$')
 
     def unit3Result(self):
         self.unit3Socket.send('Result$')

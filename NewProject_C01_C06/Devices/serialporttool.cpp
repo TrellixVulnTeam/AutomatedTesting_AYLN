@@ -56,7 +56,7 @@ void serialportTool::sendData(const QString& msg)
     serialPort->write(command.toLocal8Bit());
 }
 
-void serialportTool::onSendAndRecv(const QString& msg, const float& timeout)
+void serialportTool::onSendAndRecv(const QString& msg, const float& timeout, const QString& suffixStr)
 {
     if (!serialPort->isWritable() || !serialPort->isReadable()) {
         emit errorHappend("SerialPort status is incorrect. Read/write operations are prohibited");
@@ -74,17 +74,18 @@ void serialportTool::onSendAndRecv(const QString& msg, const float& timeout)
         temp_timeout = temp_timeout + 0.01;
 
         res = response;
-        if (res.contains(suffix)) {
+        if (res.contains(suffixStr)) {
+            qDebug() << "---1001----";
             break;
         }
 
-        if (msg.contains("[0x1,0x82,0x41,0x3")) {
+        if (msg.contains("[0x1,0x82,0x41,0x3") && !msg.contains("SET_pcb[0x1,0x82,0x41,0x3,0x0,0x0,0x0,0x12]")) {
             res = "[Set motor_Alpha][OK][DONE]\r\n";
             break;
         }
     }
 
-    if (res.contains("[DONE]") || res.contains(suffix)) {
+    if (res.contains(suffixStr)) {
         return;
     }
 
@@ -92,14 +93,14 @@ void serialportTool::onSendAndRecv(const QString& msg, const float& timeout)
         QString("serialport %1 send: %2 failed, timeout %3").arg(serialPort->portName()).arg(msg).arg(timeout));
 }
 
-QString serialportTool::sendDataWithResponse(const QString& msg, const float& timeout)
+QString serialportTool::sendDataWithResponse(const QString& msg, const float& timeout, const QString& suffixStr)
 {
     std::unique_lock<std::mutex> lock(_mutex);
     response.clear();
     if (GetCurrentThreadId() == m_threadID)
-        onSendAndRecv(msg, timeout);
+        onSendAndRecv(msg, timeout, suffixStr);
     else
-        emit sendAndRecvSignals(msg, timeout);
+        emit sendAndRecvSignals(msg, timeout, suffixStr);
     return response;
 }
 

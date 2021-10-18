@@ -81,7 +81,7 @@ private slots:
     void onUnitStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
 
     void onUpdateUIInfo(const QString& opID, const QString& lotName, const QString& productionMode,
-                        const QString& siteID, QString& projectID);
+                        const QString& siteID, QString& projectID, QString& config);
     void onLoginAction();
     void onLoopTestAction();
     void onLoadProfileAction();

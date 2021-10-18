@@ -20,18 +20,18 @@ public:
     Q_INVOKABLE void closeDevice();
     void sendData(const QString& msg);
     Q_INVOKABLE void clearBuffer();
-    Q_INVOKABLE QString sendDataWithResponse(const QString& msg, const float& timeout);
+    Q_INVOKABLE QString sendDataWithResponse(const QString& msg, const float& timeout, const QString& suffixStr);
 
 private:
     QSerialPort* serialPort = NULL;
     void Delay_MSec(unsigned int msec);
 
 signals:
-    void sendAndRecvSignals(const QString& msg, const float& timeout);
+    void sendAndRecvSignals(const QString& msg, const float& timeout, const QString& suffixStr);
     void errorHappend(const QString& msg);
 
 private slots:
-    void onSendAndRecv(const QString& msg, const float& timeout);
+    void onSendAndRecv(const QString& msg, const float& timeout, const QString& suffixStr);
 
 public slots:
     void receiveData();

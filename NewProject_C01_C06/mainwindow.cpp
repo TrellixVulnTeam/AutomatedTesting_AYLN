@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 #ifdef LzgDebug
     CFG_PARSE.setTestInfo(KMtcp, false);
+    std::string v = "V1.0.0_L";
+    CFG_PARSE.setTestInfo(KVersion, v);
     LOG_INFO("[Main] Run debug mode on Zhigen computer!");
 
     std::vector<DeviceInfo> infos;
@@ -131,8 +133,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(testaction, &TestAction::stopTimer, this, &MainWindow::stopTimer);
         connect(this, SIGNAL(appExit()), testaction, SLOT(algoReleaseSystem()));
         connect(testaction, &TestAction::unitStart, this, &MainWindow::onUnitStart);
-        connect(testaction, SIGNAL(updateUIInfo(QString, QString, QString, QString, QString&)), this,
-                SLOT(onUpdateUIInfo(QString, QString, QString, QString, QString&)));
+        connect(testaction, SIGNAL(updateUIInfo(QString, QString, QString, QString, QString&, QString&)), this,
+                SLOT(onUpdateUIInfo(QString, QString, QString, QString, QString&, QString&)));
         connect(testaction, &TestAction::connectedDeviceSignal, unitUIList[i], &UnitsForm::onConnectedDevice);
         connect(unitUIList[i], &UnitsForm::originBtnClicked, testaction, &TestAction::onGoHome);
         connect(m_loopDialog, &LoopTestDialog::loopStart, testaction, &TestAction::onLoopStart);
@@ -205,13 +207,14 @@ void MainWindow::reloadTestPlan()
 }
 
 void MainWindow::onUpdateUIInfo(const QString& opID, const QString& lotName, const QString& productionMode,
-                                const QString& siteID, QString& projectID)
+                                const QString& siteID, QString& projectID, QString& config)
 {
     ui->lineEdit_OperatorID->setText(opID);
     ui->lineEdit_LotName->setText(lotName);
     ui->label_ProjectID->setText(projectID);
     ui->comboBox_TestMode->setCurrentText(productionMode);
     ui->label_SiteID->setText(siteID);
+    ui->label_sw_Cfg->setText(config);
 }
 
 void MainWindow::Delay_MSec(unsigned int msec)
@@ -442,7 +445,7 @@ void MainWindow::generateUnits(const int& UnitCount)
         });
         connect(unitFrom, &UnitsForm::singleStart, this, &MainWindow::onUnitStart);
 
-        const QString unitName = "Unit-" + QString::number(i + 1);
+        const QString unitName = "Unit-" + QString::number(i + CFG_PARSE.getOffset());
         unitFrom->setObjectName(unitName);
         gridLayout->addWidget(unitFrom, i / rowCount, i % rowCount + 1);
 
@@ -460,6 +463,7 @@ void MainWindow::initTestMode()
 {
     ui->comboBox_TestMode->addItem("MP");
     ui->comboBox_TestMode->addItem("GRR");
+    ui->comboBox_TestMode->addItem("AUDIT");
     ui->comboBox_TestMode->addItem("OffLine");
     ui->comboBox_TestMode->setCurrentIndex(0);
 }
@@ -678,11 +682,12 @@ void MainWindow::on_mainBtn_clicked()
 
 QString MainWindow::getUI_Info() const
 {
-    return QString("%1,%2,%3,%4,%5,%6,%7")
+    return QString("%1,%2,%3,%4,%5,%6,%7,%8")
         .arg(QString::fromStdString(CFG_PARSE.getVersion()))
         .arg(ui->label_SiteID->text())
         .arg(ui->label_ProjectID->text())
         .arg(ui->label_machineID->text())
+        .arg(ui->label_sw_Cfg->text())
         .arg(ui->lineEdit_LotName->text())
         .arg(ui->lineEdit_OperatorID->text())
         .arg(ui->comboBox_TestMode->currentText());

@@ -58,6 +58,8 @@ public slots:
     void onTestStart(const QString& SN = "");
     void onTestEnd(TEST_RESULT result);
     void updateNetState(const QString& str);
+    void onReseting();
+    void finishReset();
 
 signals:
     void testStart(const UNIT_INFO& info, const QString& sn);

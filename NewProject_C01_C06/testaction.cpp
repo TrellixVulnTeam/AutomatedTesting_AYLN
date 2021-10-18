@@ -13,11 +13,20 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
     unitNum = num;
     m_testSpecTool = tempTestplaninfo;
     m_testFlowTool = tempFlowinfo;
-
+    fixtureID = QString("FIX%1").arg(unitNum + offsetNum);
     qRegisterMetaType<TEST_RESULT>("TEST_RESULT");
     MLOG_INFO("Creat a new TestAction");
 
-    isReady = true;
+    isReady = false;
+#ifdef LzgDebug
+    isReady = true;  // debug
+    isFlowEnd = true;
+    isReseting = false;
+    m_isPosition_O = true;
+    errorMessage_H = "";
+    errorCode_H = "0";
+#endif
+
     titleStr = tempTestplaninfo->getHeadTitle();
 
     if (CFG_PARSE.getSlot().find("1") != std::string::npos) {
@@ -30,13 +39,29 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
     initTcpSocketForHandler();
 
     QList<QString> list = positionStr.split("\n");
-    list_Xp = list[1 + 5 * unitNum].split(",");
-    list_Y = list[2 + 5 * unitNum].split(",");
-    list_Z = list[3 + 5 * unitNum].split(",");
-    list_Beta = list[4 + 5 * unitNum].split(",");
-    list_Gamma = list[5 + 5 * unitNum].split(",");
+    list_Xp = list[1 + 8 * unitNum].split(",");
+    list_Y = list[2 + 8 * unitNum].split(",");
+    list_Z = list[3 + 8 * unitNum].split(",");
+    list_Beta = list[4 + 8 * unitNum].split(",");
+    list_Gamma = list[5 + 8 * unitNum].split(",");
+    Xs_Offset = list[6 + 8 * unitNum].replace("Xs_Offset:,", "").replace(",", "").replace(";", ",");
+    Z_Offset = list[7 + 8 * unitNum].replace("Z_Offset:,", "").replace(",", "");
+    beta_Offset = list[8 + 8 * unitNum].replace("Beta_Offset:,", "").replace(",", "").replace(";", ",");
 
     m_process = std::shared_ptr<QProcess>(new QProcess);
+
+    QString filePath_Cmp = QApplication::applicationDirPath() + "/Config/Comp_Factor/";
+    QString fileName_Cmp = QString("Comp_Factor_TC%1.csv").arg(unitNum + offsetNum);
+    QString content_Cmp = FileTool::readContentWithPath(filePath_Cmp + fileName_Cmp);
+
+    QList<QString> tmpList = content_Cmp.split("\n");
+    if (tmpList.count() >= 2) {
+        list_cmpFactor = tmpList[1].split(",");
+    }
+
+    for (int i = 0; i < list_cmpFactor.count(); i++) {
+        qDebug() << "list_cmpFactor:" << list_cmpFactor[i].toDouble();
+    }
     connect(this, &TestAction::showWarning, this, &TestAction::onShowWarning);
     connect(this, &TestAction::showInfo, this, &TestAction::onShowInfo);
     connect(this, &TestAction::startProcess, this, &TestAction::onStartProcess, Qt::BlockingQueuedConnection);
@@ -50,11 +75,14 @@ void TestAction::reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestpla
     titleStr = tempTestplaninfo->getHeadTitle();
 
     QList<QString> list = positionStr.split("\n");
-    list_Xp = list[1 + 5 * unitNum].split(",");
-    list_Y = list[2 + 5 * unitNum].split(",");
-    list_Z = list[3 + 5 * unitNum].split(",");
-    list_Beta = list[4 + 5 * unitNum].split(",");
-    list_Gamma = list[5 + 5 * unitNum].split(",");
+    list_Xp = list[1 + 8 * unitNum].split(",");
+    list_Y = list[2 + 8 * unitNum].split(",");
+    list_Z = list[3 + 8 * unitNum].split(",");
+    list_Beta = list[4 + 8 * unitNum].split(",");
+    list_Gamma = list[5 + 8 * unitNum].split(",");
+    Xs_Offset = list[6 + 8 * unitNum].replace("Xs_Offset:,", "").replace(",", "").replace(";", ",");
+    Z_Offset = list[7 + 8 * unitNum].replace("Z_Offset:,", "").replace(",", "");
+    beta_Offset = list[8 + 8 * unitNum].replace("Beta_Offset:,", "").replace(",", "").replace(";", ",");
 }
 
 void TestAction::connectDevice()
@@ -77,7 +105,7 @@ void TestAction::connectDevice()
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     std::vector<std::string> names = m_devices->getConnectFailedDevices();
     if (!ishandlerConnected) {
-        names.push_back("MainBoard");
+        names.push_back("Handler");
     }
     emit connectedDeviceSignal(names);
 }
@@ -85,6 +113,10 @@ void TestAction::connectDevice()
 void TestAction::run()
 {
     MLOG_INFO("\n\n\n\nStart New run thread.");
+
+    isFlowEnd = false;
+    errorMessage_H = "Unknow erroe";
+    errorCode_H = "0";
     isReady = false;
     m_loopStopFlag = false;
     testResult = TEST_FAIL;
@@ -123,9 +155,22 @@ void TestAction::run()
     try {
         startTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
 
+        if (!m_isPosition_O) {
+            isReady = false;
+            errorMessage_H = "pls. reset the fixture!";
+            errorCode_H = "1009";
+            m_loopStopFlag = true;
+            emit showWarning(tr("pls reset the fixture !"));
+        }
+
+        //        onTakePhotos();
+        //        QThread::msleep(1200);
+
         for (int i = 0; i < CFG_PARSE.getGroupOrderVec().size(); i++) {
-            if (m_loopStopFlag)
+            if (m_loopStopFlag) {
+                m_isPosition_O = false;
                 break;
+            }
 
             QString groupName = QString::fromStdString(CFG_PARSE.getGroupOrderItem(i));
             std::vector<Items*> tempFlowItemList = m_testFlowTool->getTestPlanItemMap()[groupName];
@@ -141,8 +186,10 @@ void TestAction::run()
 
             m_isSendOnly = false;
             for (int j = 0; j < tempFlowItemList.size(); j++) {
-                if (m_loopStopFlag)
+                if (m_loopStopFlag) {
+                    m_isPosition_O = false;
                     break;
+                }
 
                 QString otherLog = "";
                 response = "";
@@ -161,9 +208,9 @@ void TestAction::run()
 
                         QString cmdStr;
                         if (tempItem->Ref.contains("Uart")) {
-
-                            emit sendDataToServer(
-                                QString("Vlog#Test cell %1#%2$").arg(this->unitNum + offsetNum).arg(tempItem->Param));
+                            emit sendDataToServer(QString("Vlog#Test cell %1#%2$")
+                                                      .arg(this->unitNum + offsetNum)
+                                                      .arg(tempItem->ItemName));
 
                             deviceObject_Uart1 =
                                 (QObject*)m_devices
@@ -193,7 +240,8 @@ void TestAction::run()
                                 QMetaObject::invokeMethod(deviceObject_Uart1, tempItem->Function.toStdString().c_str(),
                                                           Qt::BlockingQueuedConnection,
                                                           Q_RETURN_ARG(QString, response2), Q_ARG(QString, cmdStr),
-                                                          Q_ARG(float, tempItem->Timeout1 / 1000.0));
+                                                          Q_ARG(float, tempItem->Timeout1 / 1000.0),
+                                                          Q_ARG(QString, "[DONE]\r\n"));
                                 otherLog.append(QString("\n cmd:%1 response:%2").arg(response2).arg(cmdStr));
 
                                 QString msg = QString("%1 Uart1 cmd:%2 response:%3\n")
@@ -235,6 +283,10 @@ void TestAction::run()
 
                             response.clear();
                             if (tempItem->Function == "sendDataWithResponse") {
+
+                                if (groupName == "C01")
+                                    QThread::msleep(3000);
+
                                 QMetaObject::invokeMethod(deviceObject, tempItem->Function.toStdString().c_str(),
                                                           Qt::BlockingQueuedConnection, Q_ARG(QString, cmdStr),
                                                           Q_ARG(float, tempItem->Timeout1 / 1000.0),
@@ -281,7 +333,23 @@ void TestAction::run()
                         otherLog.append(QString("\n end get items from local file:%1")
                                             .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")));
                         std::vector<Items*> currentSpecItemList = m_testSpecTool->getTestPlanItemMap()[groupName];
-                        getItemsFromLocalFile(itemFilePath, itemFileName, currentSpecItemList);
+                        //                        getItemsFromLocalFile(itemFilePath, itemFileName,
+                        //                        currentSpecItemList);
+
+                        try {
+                            getItemsFromLocalFile(itemFilePath, itemFileName, currentSpecItemList);
+                        }
+                        catch (...) {
+                            qDebug() << "Exception...";
+                            if (groupName == "Noise") {
+                                itemFilePath = "D:/DemoOut/Exception/";
+                                itemFileName = "MaestroERSFoMs_NoiseFoMs.csv";
+                            } else {
+                                itemFilePath = "D:/DemoOut/Exception/";
+                                itemFileName = "MaestroERSFoMs_FoMs.csv";
+                            }
+                            getItemsFromLocalFile(itemFilePath, itemFileName, currentSpecItemList);
+                        }
 
                         // 3.show the items in table.
                         otherLog.append(QString("\n start show the items in table:%1")
@@ -350,6 +418,12 @@ void TestAction::run()
 
                             emit flushUiWithRow(currentSpecItemList[k], flushRow++, 5, unitNum);
                         }
+
+                        if (tempItem->Group == "TSED") {
+                            isFlowEnd = true;
+                            errorCode_H = "0";
+                            errorMessage_H = "";
+                        }
                     }
 
                     if (response.size() < 100) {
@@ -392,15 +466,19 @@ void TestAction::run()
     }
     catch (std::runtime_error& e) {
         m_loopStopFlag = true;
+        errorCode_H = "1010";
+        errorMessage_H = "Unknow error!";
         emit showWarning(tr("Runtime error: %1").arg(e.what()));
     }
     catch (...) {
         m_loopStopFlag = true;
+        errorCode_H = "1010";
+        errorMessage_H = "Unknow error!";
+
         emit showWarning(tr("Unknow error happened, Stop test."));
     }
 
     content.clear();
-    isReady = true;
     itemSn.clear();
 
     response.clear();
@@ -419,6 +497,10 @@ void TestAction::run()
     emit startProcess(cmd);
     emit stopTimer(unitNum, testResult);
     MLOG_INFO("End run thread.\n\n");
+    if (isFlowEnd) {
+        isReady = true;
+        m_isPosition_O = true;
+    }
     quit();
 }
 
@@ -468,6 +550,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
 
                 double sum = 0;
                 double timeStep = CFG_PARSE.getTimeStep();
+                double cmp_factor = pthis->getComp_Factor(tempItem->Group);
                 // filter row data[unit:V][ and ][DONE]\r\n
                 for (unsigned int i = 17; i < resStr.size() - 9; i++) {
                     snprintf(buf, sizeof(buf), "%02x", (uint8_t)resStr[i]);
@@ -490,7 +573,7 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                             csvContent << _t << "," << d << "\n";
                             targetVData[(int)floor((i - 17) / 4) + 1] = (double)d;
                         } else {
-                            double tmpVal = 1e6 * (d - pthis->rms) / 10000.0;
+                            double tmpVal = cmp_factor * (1e6 * d / 10000.0) /*1e6 * (d - pthis->rms) / 10000.0*/;
                             fileStr.append(QString("%1,\n").arg(QString::number(d, 'f', 12)));
                             csvContent << _t << "," << tmpVal << "\n";
                             targetVData[(int)floor((i - 17) / 4) + 1] = tmpVal;
@@ -550,10 +633,15 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
     }
     catch (std::runtime_error& e) {
         pthis->m_loopStopFlag = true;
+        pthis->errorCode_H = "1008";
+        pthis->errorMessage_H = "commucation time out";
+
         emit pthis->showWarning(tr("Runtime error: %1").arg(e.what()));
     }
     catch (...) {
         pthis->m_loopStopFlag = true;
+        pthis->errorCode_H = "1008";
+        pthis->errorMessage_H = "commucation time out";
         emit pthis->showWarning(tr("Unknow error happened, Stop test."));
     }
 }
@@ -668,19 +756,19 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
         QString tcmd = "SET_pcb[0x1,0x84,0x41,0x0,0x0,0x0,0x0,0x0]";
         QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd),
-                                  Q_ARG(float, item->Timeout1 / 1000.0));
+                                  Q_ARG(float, item->Timeout1 / 1000.0), Q_ARG(QString, "[DONE]\r\n"));
 
         QThread::msleep(100);
 
         tcmd = "SET_pcb[0x1,0x82,0x41,0x3,0xef,0xff,0xff,0xff]";
         QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(QString, repStr), Q_ARG(QString, tcmd),
-                                  Q_ARG(float, item->Timeout1 / 1000.0));
+                                  Q_ARG(float, item->Timeout1 / 1000.0), Q_ARG(QString, "[DONE]\r\n"));
         QThread::msleep(100);
 
         QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Y),
-                                  Q_ARG(float, item->Timeout1 / 1000.0));
+                                  Q_ARG(float, item->Timeout1 / 1000.0), Q_ARG(QString, "[DONE]\r\n"));
 
         FileTool::writeContentWithPath("",
                                        QString("%1 Uart2 cmd:%2 response:%3\n")
@@ -696,7 +784,7 @@ void TestAction::dealYParallelZCmd(QString str, Items* item, QObject* devObj1, Q
     if (!cmd_Z.isEmpty()) {
         QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmd_Z),
-                                  Q_ARG(float, item->Timeout1 / 1000.0));
+                                  Q_ARG(float, item->Timeout1 / 1000.0), Q_ARG(QString, "[DONE]\r\n"));
 
         FileTool::writeContentWithPath("",
                                        QString("%1 Uart2 cmd:%2 response:%3\n")
@@ -956,7 +1044,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
             if (i == 1 || i == 2) {
                 QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                           Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
-                                          Q_ARG(float, item->Timeout2 / 1000.0));
+                                          Q_ARG(float, item->Timeout2 / 1000.0), Q_ARG(QString, item->Suffix));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 QThread::msleep(50);
@@ -971,7 +1059,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
                 QThread::msleep(50);
                 QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                           Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
-                                          Q_ARG(float, item->Timeout2 / 1000.0));
+                                          Q_ARG(float, item->Timeout2 / 1000.0), Q_ARG(QString, item->Suffix));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 FileTool::writeContentWithPath("",
@@ -985,7 +1073,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
             if (i < 2) {
                 QMetaObject::invokeMethod(devObj2, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                           Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
-                                          Q_ARG(float, item->Timeout2 / 1000.0));
+                                          Q_ARG(float, item->Timeout2 / 1000.0), Q_ARG(QString, item->Suffix));
 
                 QThread::msleep(100);
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
@@ -999,7 +1087,7 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
             } else {
                 QMetaObject::invokeMethod(devObj1, item->Function.toStdString().c_str(), Qt::BlockingQueuedConnection,
                                           Q_RETURN_ARG(QString, repStr), Q_ARG(QString, cmdStr),
-                                          Q_ARG(float, item->Timeout2 / 1000.0));
+                                          Q_ARG(float, item->Timeout2 / 1000.0), Q_ARG(QString, item->Suffix));
                 logStr.append(QString("\n cmd:%1 response:%2").arg(repStr).arg(cmdStr));
 
                 FileTool::writeContentWithPath("",
@@ -1023,15 +1111,15 @@ void TestAction::dealMoveCmd(QString str, Items* item, QObject* devObj1, QObject
 void TestAction::getItemsFromLocalFile(const QString& filePath, const QString& fileName,
                                        std::vector<Items*>& showItemList)
 {
-    if (!Util::IsFileExist((filePath + fileName).toStdString())) {
-        std::string err = (filePath + fileName).toStdString() + " is not exist.";
-        throw std::runtime_error(err);
-    }
+    //    if (!Util::IsFileExist((filePath + fileName).toStdString())) {
+    //        std::string err = (filePath + fileName).toStdString() + " is not exist.";
+    //        throw std::runtime_error(err);
+    //    }
     QString itemContent = FileTool::readContentWithPath(filePath + fileName);
     QStringList contentList = itemContent.split("\n");
     QStringList valueList = contentList[1].split(",");
 
-    if (valueList.count() == showItemList.size()) {
+    if (valueList.count() >= showItemList.size()) {
         for (int i = 0; i < showItemList.size(); i++) {
             showItemList[i]->Value = valueList[i];
         }
@@ -1043,17 +1131,20 @@ void TestAction::getItemsFromLocalFile(const QString& filePath, const QString& f
 void TestAction::saveUnitCSVData(const QString& itemSn, const QString& result, const QString& slot,
                                  const QString& failMsg, const QString& uiInfo, const QString& itemContents)
 {
+    QString currentInfo = trial_ST + "," + user_ST + "," + uiInfo + "," + mtcpState_ST + "," + mesState_ST;
+    currentInfo = currentInfo.replace("TConfig", config_ST);
+
     QString testStopTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
-    QString Conents = "\n" + itemSn + "," + result + "," + slot + "," + startTime + "," + endTime + "," + trial_ST + ","
-                      + uiInfo + "," + failMsg + "," + itemContents;
+    QString Conents = "\n" + itemSn + "," + result + "," + slot + "," + startTime + "," + endTime + "," + currentInfo
+                      + "," + failMsg + "," + itemContents;
+
     if (result == "PASS") {
         result_R = "1";
     } else {
         result_R = "0";
     }
 
-    csvInfo_R =
-        itemSn + "," + result + "," + slot + "," + testStopTime + "," + testStopTime + "," + trial_ST + "," + uiInfo;
+    csvInfo_R = itemSn + "," + result + "," + slot + "," + testStopTime + "," + testStopTime + "," + currentInfo;
     failItems_R = failMsg;
 
     testItems_R = itemContents;
@@ -1161,7 +1252,7 @@ void TestAction::saveRawdataToLocalFile(const QString& filePath, const QString& 
             }
             QThread::usleep(10);
             for (int i = 0; i < rawData.count(); i++) {
-                double tmpVal = 1e6 * (rawData[i] - rms) / 10000.0;
+                double tmpVal = 1e6 * rawData[i] / 10000.0 /*1e6 * (rawData[i] - rms) / 10000.0*/;
                 fileStr.append(QString("%1,\r\n").arg(QString::number(tmpVal, 'f', 12)));
                 llStr.append(QString("%1,\n").arg(QString::number(rawData[i], 'f', 12)));
             }
@@ -1252,25 +1343,25 @@ void TestAction::initTcpSocketForHandler()
 
         // 1. send register code to server
         // format: Register#761001#1$
-        tcpClientSendData(
-            QString("Register#Fixture%1#%2#%3$").arg(unitNum + offsetNum).arg(unitNum + offsetNum).arg(this->titleStr));
+        tcpClientSendData(QString("Register#%1#%2#%3$").arg(fixtureID).arg(unitNum + offsetNum).arg(this->titleStr));
     });
 
     connect(tcpClient, &QTcpSocket::readyRead, [=]() {
         QByteArray array = tcpClient->readAll();
         tcpRecvStr.append(QString::fromUtf8(array));
         if (tcpRecvStr.contains("$")) {
-            MLOG_INFO("Socket Msg: " + tcpRecvStr);
+
+            if (!tcpRecvStr.contains("Status$") && !tcpRecvStr.contains("ErrorCode$")) {
+                MLOG_INFO("Socket Msg: " + tcpRecvStr);
+            }
             QString tmpStr = tcpRecvStr;
             tcpRecvStr.clear();
 
             if (tmpStr.contains("Register#")) {
                 if (!tmpStr.contains("Register#1")) {
                     // Re-send the Register info.
-                    tcpClientSendData(QString("Register#Fixture%1#%2#%3$")
-                                          .arg(unitNum + offsetNum)
-                                          .arg(unitNum + offsetNum)
-                                          .arg(titleStr));
+                    tcpClientSendData(
+                        QString("Register#Fixture%1#%2#%3$").arg(fixtureID).arg(unitNum + offsetNum).arg(titleStr));
                 }
             } else if (tmpStr.contains("Status$")) {
                 if (isReady) {
@@ -1307,21 +1398,27 @@ void TestAction::initTcpSocketForHandler()
                     QMessageBox::warning(NULL, tr("Warning"), tr("You can't start test, please login first!"));
                     return;
                 }
+
                 if (isReady) {
                     QList<QString> infoArray = tmpStr.split("#");
-                    if (infoArray.count() < 7) {
+                    if (infoArray.count() < 12) {
                         return;
                     }
 
                     sn_ST = infoArray[1];
-                    opID_ST = infoArray[2];
-                    lotName_ST = infoArray[3];
-                    productionMode_ST = infoArray[4];
-                    siteID_ST = infoArray[5];
-                    projectID_ST = infoArray[6];
-                    projectID_ST = projectID_ST.replace("$", "");
-                    trial_ST = infoArray[7];
-                    trial_ST = trial_ST.replace("$", "");
+                    machineID_ST = infoArray[2];
+                    user_ST = infoArray[3];
+                    config_ST = infoArray[4];
+                    lotName_ST = infoArray[5];
+                    productionMode_ST = infoArray[6];
+                    siteID_ST = infoArray[7];
+                    projectID_ST = infoArray[8];
+                    trial_ST = infoArray[9];
+                    mesState_ST = infoArray[10];
+                    mtcpState_ST = infoArray[11];
+
+                    mtcpState_ST = mtcpState_ST.replace("$", "");
+
                     if (lotName_ST.toStdString() != CFG_PARSE.getLotName()) {
                         int ret = -1;
                         emit getLotName(lotName_ST, ret);
@@ -1331,7 +1428,7 @@ void TestAction::initTcpSocketForHandler()
                         }
                     }
 
-                    emit updateUIInfo(opID_ST, lotName_ST, productionMode_ST, siteID_ST, projectID_ST);
+                    emit updateUIInfo(opID_ST, lotName_ST, productionMode_ST, siteID_ST, projectID_ST, config_ST);
 
                     m_mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unit"
                                      + std::to_string(unitNum + offsetNum) + "/" + sn_ST.toStdString() + "/"
@@ -1351,10 +1448,14 @@ void TestAction::initTcpSocketForHandler()
                     tcpClientSendData("Status#0$");
                 }
             } else if (tmpStr.contains("ErrorCode$")) {
-                if (errorMessage_H.length() == 0) {
-                    tcpClientSendData("ErrorCode#0$");
-                } else {
-                }
+                tcpClientSendData(QString("ErrorCode#%1$").arg(errorCode_H));
+            } else if (tmpStr.contains("Home$")) {
+
+                onGoHome();
+                tcpClientSendData("Home#1$");
+
+            } else if (tmpStr.contains("GR#")) {
+
             } else {
             }
         }
@@ -1363,7 +1464,7 @@ void TestAction::initTcpSocketForHandler()
     connect(tcpClient, &QTcpSocket::disconnected, [=]() {
         ishandlerConnected = false;
         std::vector<std::string> names = m_devices->getConnectFailedDevices();
-        names.push_back("MainBoard");
+        names.push_back("Handler");
         emit connectedDeviceSignal(names);
     });
 
@@ -1371,30 +1472,52 @@ void TestAction::initTcpSocketForHandler()
     connect(this, SIGNAL(tcpDisconnected()), this, SLOT(tcpConnect()), Qt::BlockingQueuedConnection);
 
     tcpConnect();
-    //    std::shared_ptr<std::thread> _thread = std::shared_ptr<std::thread>(new std::thread([&]() {
-    //        while (true) {
-    //            if (!ishandlerConnected) {
-    //                emit tcpDisconnected();
-    //            }
-    //            QThread::sleep(10);
-    //        }
-    //    }));
-    //    _thread->detach();
+    std::shared_ptr<std::thread> _thread = std::shared_ptr<std::thread>(new std::thread([&]() {
+        while (true) {
+            if (!ishandlerConnected) {
+                emit tcpDisconnected();
+            }
+            QThread::sleep(10);
+        }
+    }));
+    _thread->detach();
 }
 
 void TestAction::tcpConnect()
 {
-    QString name = "MainBoard";
-    QString ip = "127.0.0.1";  //"169.254.1.200";
+    QString name = QString::fromStdString(CFG_PARSE.getVersion());
+    QString ip = "169.254.1.200";
     qint16 port;
-    port = 6050;
-    if (unitNum == 0) {
-        port = 6052;
-    } else if (unitNum == 1) {
-        port = 6053;
+    if (name.contains("M")) {
+        ip = "127.0.0.1";
+        if ((unitNum + offsetNum) == 1) {
+            port = 6051;
+        } else if ((unitNum + offsetNum) == 2) {
+            port = 6052;
+        } else if ((unitNum + offsetNum) == 3) {
+            port = 6053;
+        } else if ((unitNum + offsetNum) == 4) {
+            port = 6054;
+        } else if ((unitNum + offsetNum) == 5) {
+            port = 6055;
+        } else if ((unitNum + offsetNum) == 6) {
+            port = 6056;
+        } else {
+            port = 6050;
+        }
+    } else if (name.contains("L")) {
+        ip = "127.0.0.1";
+        if (unitNum == 0) {
+            port = 6052;
+        } else if (unitNum == 1) {
+            port = 6053;
+        } else {
+            port = 6054;
+        }
     } else {
-        port = 6054;
+        port = 6050;
     }
+
     tcpClient->connectToHost(QHostAddress(ip), port);
     //    tcpClient->waitForConnected(-1);
 }
@@ -1441,7 +1564,8 @@ bool TestAction::openCylinder()
     QString tmpStr = "SET_pcb[0x1,0x83,0x5,0x0,0,0,0,0]";
 
     QMetaObject::invokeMethod(deviceObject_open, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmpStr), Q_ARG(float, 5));
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmpStr), Q_ARG(float, 5),
+                              Q_ARG(QString, "[DONE]\r\n"));
     if (response.contains("[DONE]")) {
         return true;
     } else {
@@ -1458,7 +1582,8 @@ bool TestAction::closeCylinder()
     QString tmpStr = "SET_pcb[0x1,0x83,0x5,0x1,0,0,0,0]";
 
     QMetaObject::invokeMethod(deviceObject_close, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmpStr), Q_ARG(float, 5));
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmpStr), Q_ARG(float, 5),
+                              Q_ARG(QString, "[DONE]\r\n"));
 
     if (response.contains("[DONE]")) {
         return true;
@@ -1509,8 +1634,18 @@ void TestAction::onGoHome()
         return;
     }
 
+    isFlowEnd = false;
+    isReady = false;
+    m_loopStopFlag = true;
+    m_isPosition_O = false;
+    errorMessage_H = "fixture reset fail";
+    errorCode_H = "1009";
+
     std::shared_ptr<std::thread> _thread = std::shared_ptr<std::thread>(new std::thread([&]() {
         isReseting = true;
+        QString groupName = "Fixture reset";
+        QString info = "";
+
         MLOG_INFO("Origin Button Clicked");
         QObject* deviceObject_Uart1 =
             (QObject*)m_devices->deviceDic[QString("TEST_Uart%1%2").arg(unitNum + offsetNum).arg("1")].value<void*>();
@@ -1518,94 +1653,141 @@ void TestAction::onGoHome()
             (QObject*)m_devices->deviceDic[QString("TEST_Uart%1%2").arg(unitNum + offsetNum).arg("2")].value<void*>();
 
         QString response;
-
-        // LD-X +5mm
-        QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+        QString suffixStrReset = "alarm the Zero limit sensor![DONE]";
+        QString suffixStr_normal = "[DONE]";
+        // DD Motor stop
+        QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(QString, response),
-                                  Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0x1,0,0,0x61,0xa8]"), Q_ARG(float, 5));
-        QThread::msleep(2000);
+                                  Q_ARG(QString, "SET_pcb[0x1,0x84,0x41,0x0,0x0,0x0,0x0,0x0]"), Q_ARG(float, 2),
+                                  Q_ARG(QString, suffixStrReset));
+        QThread::msleep(500);
 
-        // LD-Y
-        QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x3,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
+        QList<QString> cmdList_Reset;
+        cmdList_Reset.append("SET_pcb[0x1,0x82,0x2,0x1,0,0x7,0xa1,0x20]");  // Xs up
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x3,0x0,0,0,0,0]");          // reset Y
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x4,0x0,0,0,0,0]");          // reset Z
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x3,0x0,0,0,0,0]");          // reset Xp
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x2,0x0,0,0,0,0]");          // reset beta
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x4,0x0,0,0,0,0]");          // reset gamma
+        cmdList_Reset.append("SET_pcb[0x1,0x85,0x2,0x0,0,0,0,0]");          // reset Xs
 
+        bool isSendCmdFail = false;
+        for (int i = 0; i < cmdList_Reset.count(); i++) {
+            response = "";
+            suffixStrReset = "alarm the Zero limit sensor![DONE]\r\n";
+            for (int j = 0; j < 3; j++) {
+                if (i == 0 || i == 1 || i == 2 || i == 6) {
+                    if (i == 0)
+                        suffixStrReset = "ultra limit![DONE]\r\n";
+                    QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                              Q_RETURN_ARG(QString, response), Q_ARG(QString, cmdList_Reset[i]),
+                                              Q_ARG(float, 10), Q_ARG(QString, suffixStrReset));
+
+                } else {
+                    QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                              Q_RETURN_ARG(QString, response), Q_ARG(QString, cmdList_Reset[i]),
+                                              Q_ARG(float, 10), Q_ARG(QString, suffixStrReset));
+                }
+
+                info = QString("%1:%2").arg(groupName).arg(response);
+                qDebug() << "---1003----" << info;
+
+                MLOG_INFO(info);
+                QThread::msleep(1000);
+
+                if (response.contains(suffixStrReset))
+                    break;
+                if (j == 2)
+                    isSendCmdFail = true;
+            }
+
+            if (isSendCmdFail) {
+                break;
+            }
+            qDebug() << "---1004----" << i;
+        }
+
+        if (isSendCmdFail) {
+            info = QString("%1:%2").arg(groupName).arg("fixture %1 reset fail!").arg(unitNum + offsetNum);
+            MLOG_INFO(info);
+            emit showInfo(tr("fixture %1 reset fail!").arg(unitNum + offsetNum));
+            isReseting = false;
+            return;
+        }
+
+        QThread::msleep(3000);
+        // for automation pick up
         // LD-Z
-        QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x4,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
-
-        // DUT-X
-        QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x3,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
-
-        // beta
-        QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x2,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
-
-        // gamma
-        QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x4,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
+        QString cmd_z = convertCmd("Z", Z_Offset);
+        if (cmd_z != "") {
+            QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_z), Q_ARG(float, 5),
+                                      Q_ARG(QString, suffixStr_normal));
+            qDebug() << "LD-Z:" << response;
+            MLOG_INFO(QString("Response_Offset_Z: %1").arg(response));
+            if (!response.contains(suffixStr_normal) || response.contains("limit", Qt::CaseInsensitive)) {
+                info = QString("%1:%2").arg(groupName).arg("fixture %1 reset fail!").arg(unitNum + offsetNum);
+                MLOG_INFO(info);
+                emit showInfo(tr("fixture %1 reset fail!").arg(unitNum + offsetNum));
+                isReseting = false;
+                return;
+            }
+            QThread::msleep(1000);
+        }
 
         // LD-X
-        QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response), Q_ARG(QString, "SET_pcb[0x1,0x85,0x2,0x0,0,0,0,0]"),
-                                  Q_ARG(float, 5));
-        QThread::msleep(5000);
-
-        // for automation pick up
-        // LD-Z +5mm
-        QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                  Q_RETURN_ARG(QString, response),
-                                  Q_ARG(QString, "SET_pcb[0x1,0x82,0x4,0x1,0,0,0x61,0xa8]"), Q_ARG(float, 5));
-        QThread::msleep(1000);
-
-        if (unitNum == 0) {
-            // LD-X -1.78mm
+        QString cmd_Xs = convertCmd("Xs", Xs_Offset);
+        if (cmd_Xs != "") {
             QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0,0,0,0x22,0xc4]"), Q_ARG(float, 5));
+                                      Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_Xs), Q_ARG(float, 5),
+                                      Q_ARG(QString, suffixStr_normal));
+            MLOG_INFO(QString("Response_Offset_Xs: %1").arg(response));
             qDebug() << "LD-X:" << response;
-            // beta
-            QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0x1,0,0,0,0x58]"), Q_ARG(float, 5));
-
-        } else if (unitNum == 1) {
-            QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0,0,0,0x2f,0x44]"), Q_ARG(float, 5));
-            // beta
-            QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0x1,0,0,0,0x16]"), Q_ARG(float, 5));
-        } else if (unitNum == 2) {
-            QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0x0,0,0,0x27,0x10]"), Q_ARG(float, 5));
-            // beta
-            QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                                      Q_RETURN_ARG(QString, response),
-                                      Q_ARG(QString, "SET_pcb[0x1,0x82,0x2,0x1,0,0,0,0x16]"), Q_ARG(float, 5));
+            if (!response.contains(suffixStr_normal) || response.contains("limit", Qt::CaseInsensitive)) {
+                info = QString("%1:%2").arg(groupName).arg("fixture %1 reset fail!").arg(unitNum + offsetNum);
+                MLOG_INFO(info);
+                emit showInfo(tr("fixture %1 reset fail!").arg(unitNum + offsetNum));
+                isReseting = false;
+                return;
+            }
+            QThread::msleep(1000);
         }
-        QThread::msleep(1000);
 
-        emit showInfo(tr("fixture %1 reset finished!").arg(unitNum + offsetNum));
+        // beta
+        QString cmd_beta = convertCmd("beta", beta_Offset);
+        if (cmd_beta != "") {
+            QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                      Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_beta), Q_ARG(float, 5),
+                                      Q_ARG(QString, suffixStr_normal));
+
+            MLOG_INFO(QString("Response_Offset_beta: %1").arg(response));
+            if (!response.contains(suffixStr_normal) || response.contains("limit", Qt::CaseInsensitive)) {
+                info = QString("%1:%2").arg(groupName).arg("fixture %1 reset fail!").arg(unitNum + offsetNum);
+                MLOG_INFO(info);
+                emit showInfo(tr("fixture %1 reset fail!").arg(unitNum + offsetNum));
+                isReseting = false;
+                return;
+            }
+        }
+
+        QThread::msleep(500);
+
+        isFlowEnd = true;
         isReseting = false;
+        isReady = true;
+        m_loopStopFlag = false;
+        m_isPosition_O = true;
+        errorMessage_H = "";
+        errorCode_H = "0";
+        emit showInfo(tr("fixture %1 reset finished!").arg(unitNum + offsetNum));
     }));
     _thread->detach();
 }
 
 void TestAction::onLoopStart(int _slot)
 {
+    if (isReseting)
+        return;
     if (_slot != unitNum)
         return;
 
@@ -1614,14 +1796,15 @@ void TestAction::onLoopStart(int _slot)
         return;
     }
 
-    // todo 这里需要添加一些电机动作
-    emit updateUIInfo(QString("Op123"), QString("Lot001"), QString("MP"), QString("RS"), QString("P1"));
+    emit updateUIInfo(QString("Op123"), QString("Lot001"), QString("GRR"), QString("LF"), QString("X2155"),
+                      QString("DXD"));
     CFG_PARSE.setTestInfo(KLotName, "Lot001");
     m_mtcpFilePath = CFG_PARSE.getLogPath() + "MtcpLog/" + CFG_PARSE.getLotName() + "/Unit"
-                     + std::to_string(unitNum + offsetNum) + "/SNASDFJY365GDTRE1/"
+                     + std::to_string(unitNum + offsetNum)
+                     + QString("/SNASDFJY365GDTRE%1/").arg(unitNum + offsetNum).toStdString()
                      + QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toStdString();
 
-    sn_ST = "SNASDFJY365GDTRE1";
+    sn_ST = QString("SNASDFJY365GDTRE%1").arg(unitNum + offsetNum);
     emit unitStart(unitNum, sn_ST, m_mtcpFilePath);
 }
 
@@ -1631,6 +1814,8 @@ void TestAction::onLoopStop(int _slot)
         return;
 
     m_loopStopFlag = true;
+    m_isPosition_O = false;
+    onGoHome();
 }
 
 void TestAction::onShowWarning(const QString& msg)
@@ -1645,4 +1830,168 @@ void TestAction::onShowInfo(const QString& msg)
 {
     MLOG_INFO(msg);
     QMessageBox::information(NULL, tr("Information-Unit%1").arg(unitNum + 1), msg);
+}
+
+QString TestAction::convertCmd(QString axis, QString value)
+{
+    QString plusStr;
+    QString plus_direction;
+    QString plus_hex1;
+    QString plus_hex2;
+    QString plus_hex3;
+    QString plus_hex4;
+
+    int plusCnt = 0;
+    float distance = 0;
+    float degree = 0;
+
+    if (axis.contains("Xs")) {
+        distance = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getXs() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x2")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("Y")) {
+        distance = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getY() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x3")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("Z")) {
+        distance = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getZ() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x4")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+
+    } else if (axis.contains("Xp")) {
+        distance = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getXp() * distance / 0.25;
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x3")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("beta")) {
+        degree = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getBeta() * degree / 0.45;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x2")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+
+    } else if (axis.contains("gamma")) {
+        degree = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getGamma() * degree / 0.55;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_direction, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x4")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+
+        } else {
+            plusStr = "";
+        }
+
+    } else {
+        plusStr = "";
+    }
+    return plusStr;
+}
+
+void TestAction::onTakePhotos()
+{
+    QString tmp_cmd = "SET_pcb[0x1,0x82,0x41,0x3,0x0,0x0,0x0,0x12]";
+    QObject* deviceObject_Uart2 =
+        (QObject*)m_devices->deviceDic[QString("TEST_Uart%1%2").arg(unitNum + offsetNum).arg("2")].value<void*>();
+
+    QString response;
+
+    QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmp_cmd), Q_ARG(float, 5),
+                              Q_ARG(QString, "[DONE]\r\n"));
+
+    QThread::msleep(100);
+
+    emit sendDataToServer(QString("GR$"));
+    MLOG_INFO(QString("finish take photos-->response:%1").arg(response));
+}
+
+double TestAction::getComp_Factor(QString groupName)
+{
+    double tmpFactor = 1.0;
+    if (list_cmpFactor.count() < 6)
+        return tmpFactor;
+    if (groupName.contains("C01", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[0].toDouble();
+    } else if (groupName.contains("C02", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[1].toDouble();
+    } else if (groupName.contains("C03", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[2].toDouble();
+    } else if (groupName.contains("C04", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[3].toDouble();
+    } else if (groupName.contains("C05", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[4].toDouble();
+    } else if (groupName.contains("C06", Qt::CaseInsensitive)) {
+        tmpFactor = list_cmpFactor[5].toDouble();
+    }
+
+    return tmpFactor;
 }

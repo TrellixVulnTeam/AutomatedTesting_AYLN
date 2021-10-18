@@ -368,6 +368,9 @@ void ConfigParse::setTestInfo(const std::string& node, const std::string& value)
         } else if (node == KLotName) {
             m_lotName = value;
             LOG_INFO("[Main] Change LotName to: %s", value.c_str());
+        } else if (node == KVersion) {
+            m_version = value;
+            LOG_INFO("[Main] Change Version to: %s", value.c_str());
         }
     } else {
         procError(KConfiguration);

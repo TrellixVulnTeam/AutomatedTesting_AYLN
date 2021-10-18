@@ -9,7 +9,7 @@ void ConfigDevice::onConnectDevices(std::map<std::string, DeviceInfo>& devicMap,
 
     for (std::map<std::string, DeviceInfo>::iterator it = devicMap.begin(); it != devicMap.end(); ++it) {
         DeviceInfo dev = it->second;
-        if (dev.target == "Uart" && dev.exist && dev.ref.find(soltNum.toStdString()) != std::string::npos) {
+        if (dev.target == "Uart" && dev.exist && (dev.ref.find(soltNum.toStdString() + "1") != std::string::npos || dev.ref.find(soltNum.toStdString() + "2") != std::string::npos)) {
             serialportTool* serialport_tool = new serialportTool(this);
             connect(serialport_tool, &serialportTool::errorHappend, this, &ConfigDevice::errorHappend);
 

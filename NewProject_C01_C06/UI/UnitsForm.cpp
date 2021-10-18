@@ -125,6 +125,16 @@ TEST_STATE UnitsForm::getTestState() const
     return testStatue;
 }
 
+void UnitsForm::onReseting()
+{
+    ui->enableCheck->setEnabled(false);
+}
+
+void UnitsForm::finishReset()
+{
+    ui->enableCheck->setEnabled(true);
+}
+
 void UnitsForm::onTestStart(const QString& SN)
 {
     ui->enableCheck->setEnabled(false);

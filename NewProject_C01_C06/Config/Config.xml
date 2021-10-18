@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><Configuration>
 	<ProjectName>X2155 Station</ProjectName>
-	<Version>V1.0.0</Version>
+        <Version>V1.0.7_M</Version>
 	<Config>Cfg0001</Config>
 	<!--Offset must be over 0-->
 	<Offset>4</Offset>
@@ -26,17 +26,17 @@
 	<Z>5000</Z>
 	<TimeStep>0.0000016</TimeStep>
 	<Device>
-		<Unit target="Uart" path="CB031" num="115200" ref="TEST_Uart41" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB032" num="115200" ref="TEST_Uart42" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB041" num="115200" ref="TEST_Uart51" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB042" num="115200" ref="TEST_Uart52" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB051" num="115200" ref="TEST_Uart61" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Uart" path="CB052" num="115200" ref="TEST_Uart62" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.252" num="8800" ref="TEST_Socket4" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.251" num="8800" ref="TEST_Socket5" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
-		<Unit target="Socket" path="192.168.1.250" num="8800" ref="TEST_Socket6" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB041" num="115200" ref="TEST_Uart41" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB042" num="115200" ref="TEST_Uart42" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB051" num="115200" ref="TEST_Uart51" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB052" num="115200" ref="TEST_Uart52" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB061" num="115200" ref="TEST_Uart61" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Uart" path="CB062" num="115200" ref="TEST_Uart62" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Socket" path="169.254.1.34" num="8800" ref="TEST_Socket4" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Socket" path="169.254.1.35" num="8800" ref="TEST_Socket5" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
+                <Unit target="Socket" path="169.254.1.36" num="8800" ref="TEST_Socket6" timeout="2" suffix="[DONE]" exist="TRUE" Property="TRUE"/>
 		<Group target="Uart" path="cu.usbserial-FIXMB" num="115200" ref="CTR_Uart" timeout="2" suffix="\r\n" exist="FALSE" Property="TRUE"/>
-		<Group target="Socket" path="127.0.0.1" num="6001" ref="CTR_Socket" timeout="2" suffix="[DONE]" exist="FALSE" Property="TRUE"/>
+                <Group target="Socket" path="127.0.0.1" num="6001" ref="CTR_Socket" timeout="2" suffix="[DONE]" exist="FALSE" Property="TRUE"/>
 	</Device>
 	<IsChoose count="6">
         <Value>TRUE</Value>

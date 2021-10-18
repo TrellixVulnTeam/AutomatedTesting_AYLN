@@ -103,7 +103,7 @@ signals:
     void tcpDisconnected();
     void sendDataToServer(const QString& msg);
     void updateUIInfo(const QString& opID, const QString& lotName, const QString& productionMode, const QString& siteID,
-                      QString& projectID);
+                      QString& projectID, QString& config);
     void showWarning(const QString& msg);
     void showInfo(const QString& msg);
     void stopLoopTestWhileError(int slot);
@@ -122,6 +122,7 @@ public slots:
     void onShowWarning(const QString& msg);
     void onShowInfo(const QString& msg);
     void onStartProcess(const QString& cmd);
+	void onTakePhotos();
 
 private:
     bool openCylinder();
@@ -153,6 +154,9 @@ private:
     QString dealWithResponseStr(const QString& responseStr);
     void getItemsFromLocalFile(const QString& filePath, const QString& fileName, std::vector<Items*>& showItemList);
 
+    QString convertCmd(QString axis, QString value);
+    double getComp_Factor(QString groupName);
+
 private:
     TEST_RESULT testResult;
     QMutex* mutex;
@@ -177,6 +181,8 @@ private:
     bool ishandlerConnected = false;
     bool m_loopStopFlag = false;
     bool isReseting = false;
+    bool m_isPosition_O = false;
+    bool isFlowEnd = false;
 
     QString slotID;
     QString titleStr;
@@ -210,6 +216,13 @@ private:
     QString siteID_ST = "";
     QString projectID_ST = "";
     QString trial_ST = "";
+    QString user_ST = "";
+    QString mesState_ST = "";
+    QString mtcpState_ST = "";
+    QString machineID_ST = "";
+    QString config_ST = "";
+
+    QString fixtureID = "";
 
     QList<QString> timeStepList;
     QList<Items*> flowItemList;
@@ -218,7 +231,7 @@ private:
     QList<QString> list_Z;
     QList<QString> list_Beta;
     QList<QString> list_Gamma;
-
+    QList<QString> list_cmpFactor;
     std::string m_mtcpFilePath;
 
     std::shared_ptr<TestPlanInfo> m_testFlowTool = nullptr;
@@ -227,6 +240,12 @@ private:
     bool m_isSendOnly = false;
     QByteArray m_sendOnlyRecvByteArr;
     QThread* device_th = NULL;
+
+    QString beta_Offset = "";
+    QString Xs_Offset = "";
+    QString Z_Offset = "";
+
+
 };
 
 #endif  // TESTACTION_H
