@@ -48,5 +48,9 @@
         <file>MainUI/dxd.png</file>
         <file>MainUI/light_off.png</file>
         <file>MainUI/light_on.png</file>
+        <file>MainUI/LightSource.png</file>
+        <file>MainUI/Product.png</file>
+        <file>MainUI/click.png</file>
+        <file>MainUI/loop.png</file>
     </qresource>
 </RCC>

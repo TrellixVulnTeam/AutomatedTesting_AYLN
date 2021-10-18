@@ -33,7 +33,7 @@
 #include "LoadProfileDialog.h"
 #include "PreferencesDialog.h"
 #include "MtcpProtocol.h"
-#include "PositionDialog.h"
+#include "MotorDialog.h"
 
 namespace Ui
 {

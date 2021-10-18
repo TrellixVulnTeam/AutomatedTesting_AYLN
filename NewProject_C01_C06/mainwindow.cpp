@@ -985,6 +985,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::on_pushButton_clicked()
 {
-    PositionDialog* pd = new PositionDialog(this);
+    MotorDialog* pd = new MotorDialog(this);
     pd->exec();
 }

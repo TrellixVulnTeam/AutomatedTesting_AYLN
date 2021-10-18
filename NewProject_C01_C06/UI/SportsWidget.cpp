@@ -7,55 +7,91 @@
 const int btnW = 45;
 const int btnH = 45;
 const QStringList lightSourceColors = { "#1d953f", "#ea66a6", "#decb00" };
-const QStringList productColors = { "BDA377", "C78B8F", "#de773f" };
+const QStringList productColors = { "#BDA377", "#C78B8F", "#de773f" };
 
-SportsWidget::SportsWidget(QWidget* parent) : QWidget(parent), ui(new Ui::SportsWidget)
+SportsWidget::SportsWidget(ModuleType type, QWidget* parent)
+    : m_moduleType(type), QWidget(parent), ui(new Ui::SportsWidget)
 {
     ui->setupUi(this);
     setAutoFillBackground(true);
+    qRegisterMetaType<BtnType>("BtnType");
     // x
     xButton1 = new MoveBtn(this);
-    xButton1->setName("X+");
-    xButton1->setSize(btnW, btnH);
-    xButton1->setBackground(lightSourceColors.at(0));
+    if (m_moduleType == LightSource) {
+        xButton1->setName("X+");
+        xButton1->setBackground(lightSourceColors.at(0));
+    } else {
+        xButton1->setName("X1-");
+        xButton1->setBackground(productColors.at(0));
+    }
     xButton1->setIcon(":/Icons/1.png");
+    xButton1->setSize(btnW, btnH);
     connect(xButton1, &MoveBtn::clicked, this, &SportsWidget::onXBtn1Clicked);
 
     xButton2 = new MoveBtn(this);
-    xButton2->setName("X-");
-    xButton2->setSize(btnW, btnH);
-    xButton2->setBackground(lightSourceColors.at(0));
+    if (m_moduleType == LightSource) {
+        xButton2->setName("X-");
+        xButton2->setBackground(lightSourceColors.at(0));
+    } else {
+        xButton2->setName("X1+");
+        xButton2->setBackground(productColors.at(0));
+    }
     xButton2->setIcon(":/Icons/2.png");
+    xButton2->setSize(btnW, btnH);
     connect(xButton2, &MoveBtn::clicked, this, &SportsWidget::onXBtn2Clicked);
 
     // y
     yButton1 = new MoveBtn(this);
-    yButton1->setName("Y+");
+    if (m_moduleType == LightSource) {
+        yButton1->setName("Y+");
+        yButton1->setIcon(":/Icons/4.png");
+        yButton1->setBackground(lightSourceColors.at(1));
+    } else {
+        yButton1->setName("B-");
+        yButton1->setIcon(":/Icons/2.png");
+        yButton1->setBackground(productColors.at(1));
+    }
     yButton1->setSize(btnW, btnH);
-    yButton1->setBackground(lightSourceColors.at(1));
-    yButton1->setIcon(":/Icons/4.png");
     connect(yButton1, &MoveBtn::clicked, this, &SportsWidget::onYBtn1Clicked);
 
     yButton2 = new MoveBtn(this);
-    yButton2->setName("Y-");
+    if (m_moduleType == LightSource) {
+        yButton2->setName("Y-");
+        yButton2->setIcon(":/Icons/3.png");
+        yButton2->setBackground(lightSourceColors.at(1));
+    } else {
+        yButton2->setName("B+");
+        yButton2->setIcon(":/Icons/1.png");
+        yButton2->setBackground(productColors.at(1));
+    }
     yButton2->setSize(btnW, btnH);
-    yButton2->setBackground(lightSourceColors.at(1));
-    yButton2->setIcon(":/Icons/3.png");
     connect(yButton2, &MoveBtn::clicked, this, &SportsWidget::onYBtn2Clicked);
 
     // z
     zButton1 = new MoveBtn(this);
-    zButton1->setName("Z+");
+    if (m_moduleType == LightSource) {
+        zButton1->setName("Z+");
+        zButton1->setIcon(":/Icons/2.png");
+        zButton1->setBackground(lightSourceColors.at(2));
+    } else {
+        zButton1->setName("G-");
+        zButton1->setIcon(":/Icons/3.png");
+        zButton1->setBackground(productColors.at(2));
+    }
     zButton1->setSize(btnW, btnH);
-    zButton1->setBackground(lightSourceColors.at(2));
-    zButton1->setIcon(":/Icons/2.png");
     connect(zButton1, &MoveBtn::clicked, this, &SportsWidget::onZBtn1Clicked);
 
     zButton2 = new MoveBtn(this);
-    zButton2->setName("Z-");
+    if (m_moduleType == LightSource) {
+        zButton2->setName("Z-");
+        zButton2->setIcon(":/Icons/1.png");
+        zButton2->setBackground(lightSourceColors.at(2));
+    } else {
+        zButton2->setName("G+");
+        zButton2->setIcon(":/Icons/4.png");
+        zButton2->setBackground(productColors.at(2));
+    }
     zButton2->setSize(btnW, btnH);
-    zButton2->setBackground(lightSourceColors.at(2));
-    zButton2->setIcon(":/Icons/1.png");
     connect(zButton2, &MoveBtn::clicked, this, &SportsWidget::onZBtn2Clicked);
 }
 
@@ -66,32 +102,56 @@ SportsWidget::~SportsWidget()
 
 void SportsWidget::onXBtn1Clicked()
 {
-    qDebug() << xButton1->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(XPlusBtn);
+    } else {
+        emit moduleBtnClicked(X1MinusBtn);
+    }
 }
 
 void SportsWidget::onXBtn2Clicked()
 {
-    qDebug() << xButton2->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(XMinusBtn);
+    } else {
+        emit moduleBtnClicked(X1PlusBtn);
+    }
 }
 
 void SportsWidget::onYBtn1Clicked()
 {
-    qDebug() << yButton1->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(YPlusBtn);
+    } else {
+        emit moduleBtnClicked(BMinusBtn);
+    }
 }
 
 void SportsWidget::onYBtn2Clicked()
 {
-    qDebug() << yButton2->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(YMinusBtn);
+    } else {
+        emit moduleBtnClicked(BPlusBtn);
+    }
 }
 
 void SportsWidget::onZBtn1Clicked()
 {
-    qDebug() << zButton1->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(ZPlusBtn);
+    } else {
+        emit moduleBtnClicked(GMinusBtn);
+    }
 }
 
 void SportsWidget::onZBtn2Clicked()
 {
-    qDebug() << zButton2->getName() + " clicked.";
+    if (m_moduleType == LightSource) {
+        emit moduleBtnClicked(ZMinusBtn);
+    } else {
+        emit moduleBtnClicked(GPlusBtn);
+    }
 }
 
 void SportsWidget::paintEvent(QPaintEvent* event)
@@ -117,9 +177,14 @@ void SportsWidget::paintEvent(QPaintEvent* event)
     m_lastHeight = h;
 
     QPainter painter(this);
-    QPen pen(QColor(lightSourceColors.at(0)), 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen(QColor(m_moduleType == LightSource ? lightSourceColors.at(0) : productColors.at(0)), 4, Qt::SolidLine,
+             Qt::RoundCap, Qt::RoundJoin);
     painter.setPen(pen);
-    painter.drawPixmap(rect(), QPixmap(":/MainUI/dxd.png"));
+    if (m_moduleType == LightSource) {
+        painter.drawPixmap(rect(), QPixmap(":/MainUI/LightSource.png"));
+    } else {
+        painter.drawPixmap(rect(), QPixmap(":/MainUI/Product.png"));
+    }
 
     xButton1->move((w - btnW) / 2, btnReserved);
     xButton1->show();
@@ -140,7 +205,7 @@ void SportsWidget::paintEvent(QPaintEvent* event)
     yButton1->show();
     yButton2->move(half_w - w_mismatch - btnW, half_h - h_mismatch - btnH);
     yButton2->show();
-    pen.setColor(QColor(lightSourceColors.at(1)));
+    pen.setColor(QColor(m_moduleType == LightSource ? lightSourceColors.at(1) : productColors.at(1)));
     painter.setPen(pen);
     painter.drawLine(QPoint(half_w - w_mismatch, half_h - h_mismatch),
                      QPoint(half_w + w_mismatch, half_h + h_mismatch));
@@ -149,10 +214,23 @@ void SportsWidget::paintEvent(QPaintEvent* event)
     zButton1->show();
     zButton2->move(half_w + w_mismatch, half_h - h_mismatch - btnH);
     zButton2->show();
-    pen.setColor(QColor(lightSourceColors.at(2)));
+    pen.setColor(QColor(m_moduleType == LightSource ? lightSourceColors.at(2) : productColors.at(2)));
     painter.setPen(pen);
     painter.drawLine(QPoint(half_w - w_mismatch, half_h + h_mismatch),
                      QPoint(half_w + w_mismatch, half_h - h_mismatch));
+
+    pen.setColor(QColor("black"));
+    painter.setPen(pen);
+    painter.drawRoundedRect(QRect((w - btnW) / 2, btnReserved, xButton1->width(), xButton1->height()), 3, 3);
+    painter.drawRoundedRect(QRect((w - btnW) / 2, h - btnReserved - btnH, xButton2->width(), xButton2->height()), 3, 3);
+    painter.drawRoundedRect(QRect(half_w + w_mismatch, half_h + h_mismatch, yButton1->width(), yButton1->height()), 3,
+                            3);
+    painter.drawRoundedRect(
+        QRect(half_w - w_mismatch - btnW, half_h - h_mismatch - btnH, yButton2->width(), yButton2->height()), 3, 3);
+    painter.drawRoundedRect(
+        QRect(half_w - w_mismatch - btnW, half_h + h_mismatch, zButton1->width(), zButton1->height()), 3, 3);
+    painter.drawRoundedRect(
+        QRect(half_w + w_mismatch, half_h - h_mismatch - btnH, zButton2->width(), zButton2->height()), 3, 3);
 
     QWidget::paintEvent(event);
 }
