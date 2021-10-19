@@ -40,6 +40,7 @@ private slots:
     void on_DCBtn_clicked();
     void on_va1Btn_clicked();
     void on_va2Btn_clicked();
+    void on_setCMBtn_clicked();
 
 private:
     void appendLogTextEdit(const QString& msg);

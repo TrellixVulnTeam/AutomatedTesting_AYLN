@@ -130,3 +130,5 @@ void MotorDialog::on_DCBtn_clicked() {}
 void MotorDialog::on_va1Btn_clicked() {}
 
 void MotorDialog::on_va2Btn_clicked() {}
+
+void MotorDialog::on_setCMBtn_clicked() {}
