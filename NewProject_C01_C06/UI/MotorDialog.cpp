@@ -117,8 +117,6 @@ void MotorDialog::on_homeBtn_clicked() {}
 
 void MotorDialog::on_resetBtn_clicked() {}
 
-void MotorDialog::on_cameraBtn_clicked() {}
-
 void MotorDialog::on_aBtn_clicked() {}
 
 void MotorDialog::on_clipBtn_clicked() {}

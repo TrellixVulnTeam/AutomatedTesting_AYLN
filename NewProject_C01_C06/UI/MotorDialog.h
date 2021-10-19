@@ -33,7 +33,6 @@ private slots:
     void on_aHomeBtn_clicked();
     void on_homeBtn_clicked();
     void on_resetBtn_clicked();
-    void on_cameraBtn_clicked();
     void on_aBtn_clicked();
     void on_clipBtn_clicked();
     void on_sendBtn_clicked();

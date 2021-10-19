@@ -284,7 +284,7 @@ QPushButton:pressed{
            </property>
            <layout class="QGridLayout" name="gridLayout_13" columnstretch="0,0,1,2">
             <item row="0" column="2">
-             <layout class="QGridLayout" name="gridLayout_12" rowstretch="1,1" columnstretch="1,1,1,1,0,0">
+             <layout class="QGridLayout" name="gridLayout_12" rowstretch="1,1" columnstretch="1,1,1,1">
               <property name="horizontalSpacing">
                <number>20</number>
               </property>
@@ -661,23 +661,13 @@ QPushButton:pressed{
                 </item>
                </widget>
               </item>
-              <item row="2" column="4" colspan="2">
-               <widget class="QRadioButton" name="stepBtn">
-                <property name="text">
-                 <string>Step</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="7">
                <widget class="QLabel" name="label_18">
                 <property name="text">
                  <string>Step value</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -703,7 +693,7 @@ QPushButton:pressed{
                  <string>SetSpeed</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -845,15 +835,15 @@ QPushButton:pressed{
                    </layout>
                   </item>
                   <item row="1" column="3">
-                   <layout class="QGridLayout" name="gridLayout_11" rowstretch="1,1,1,1,1">
-                    <item row="3" column="0">
+                   <layout class="QGridLayout" name="gridLayout_11" rowstretch="1,0,0,0">
+                    <item row="2" column="0">
                      <widget class="QLineEdit" name="angleLineEdit">
                       <property name="text">
                        <string>100</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="1">
+                    <item row="2" column="1">
                      <widget class="QLabel" name="label_24">
                       <property name="text">
                        <string>360°</string>
@@ -906,30 +896,7 @@ QPushButton:pressed{
                       </property>
                      </widget>
                     </item>
-                    <item row="2" column="0" colspan="2">
-                     <widget class="QPushButton" name="cameraBtn">
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton{
-	border:2px solid gray;
-	border-radius:6px;
-	height: 33px;
-	background-color:#84bf96;
-}
-
-QPushButton:hover{
-    border: 2px solid black;
-}
-
-QPushButton:pressed{
-    background-color:#585eaa;
-}</string>
-                      </property>
-                      <property name="text">
-                       <string>Camera</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="4" column="0" colspan="2">
+                    <item row="3" column="0" colspan="2">
                      <widget class="QPushButton" name="aBtn">
                       <property name="styleSheet">
                        <string notr="true">QPushButton{
@@ -1037,6 +1004,46 @@ QPushButton:pressed{
                  <string>Overall go home failed</string>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="4" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="stepBtn">
+                  <property name="text">
+                   <string>Step</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_4">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
