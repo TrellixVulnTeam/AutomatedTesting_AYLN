@@ -324,7 +324,7 @@
          </widget>
         </item>
         <item row="12" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1">
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,1">
           <item>
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
@@ -339,6 +339,20 @@
            </spacer>
           </item>
           <item>
+           <widget class="QPushButton" name="motorBtn">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../Resources/Project.qrc">
+              <normaloff>:/MainUI/motor.png</normaloff>:/MainUI/motor.png</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="originBtn">
             <property name="minimumSize">
              <size>
@@ -347,18 +361,17 @@
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton
-{
-	border:2px solid gray;
-	border-radius:5px;
-}
-QPushButton:hover
-{
-    border: 2px solid black;
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
-             <string>Origin</string>
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../Resources/Project.qrc">
+              <normaloff>:/Debug/Debug/home.png</normaloff>:/Debug/Debug/home.png</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -371,6 +384,8 @@ QPushButton:hover
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../Resources/Project.qrc"/>
+ </resources>
  <connections/>
 </ui>

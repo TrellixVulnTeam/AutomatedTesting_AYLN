@@ -1190,6 +1190,12 @@ void TestAction::killAllDevice(ConfigDevice* tempConfigDevice)
 
 TestAction::~TestAction()
 {
+    if (NULL != m_motorDialog) {
+        m_motorDialog->close();
+        delete m_motorDialog;
+        m_motorDialog = NULL;
+    }
+
     if (nullptr != m_process) {
         m_process->kill();
     }
@@ -1994,4 +2000,16 @@ double TestAction::getComp_Factor(QString groupName)
     }
 
     return tmpFactor;
+}
+
+void TestAction::onMotorBtnClicked()
+{
+    if (m_devices->getConnectFailedDevices().size() > 0) {
+        QMessageBox::warning(NULL, tr("Warning"), tr("Not all devices have been successfully connected!"));
+    }
+
+    if (NULL == m_motorDialog) {
+        m_motorDialog = new MotorDialog(m_devices, unitNum + offsetNum);
+    }
+    m_motorDialog->exec();
 }

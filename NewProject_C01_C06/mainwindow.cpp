@@ -137,6 +137,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
                 SLOT(onUpdateUIInfo(QString, QString, QString, QString, QString&, QString&)));
         connect(testaction, &TestAction::connectedDeviceSignal, unitUIList[i], &UnitsForm::onConnectedDevice);
         connect(unitUIList[i], &UnitsForm::originBtnClicked, testaction, &TestAction::onGoHome);
+        connect(unitUIList[i], &UnitsForm::motorBtnClicked, testaction, &TestAction::onMotorBtnClicked);
         connect(m_loopDialog, &LoopTestDialog::loopStart, testaction, &TestAction::onLoopStart);
         connect(m_loopDialog, &LoopTestDialog::loopStop, testaction, &TestAction::onLoopStop);
         connect(testaction, &TestAction::unitStart, m_loopDialog, &LoopTestDialog::onTestStart);
@@ -986,10 +987,4 @@ void MainWindow::closeEvent(QCloseEvent* event)
     dcReleaseModule();
     dcReleaseSystem();
     QMainWindow::closeEvent(event);
-}
-
-void MainWindow::on_pushButton_clicked()
-{
-    MotorDialog* pd = new MotorDialog(this);
-    pd->exec();
 }

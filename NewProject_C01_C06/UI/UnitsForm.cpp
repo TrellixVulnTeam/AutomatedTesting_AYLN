@@ -33,7 +33,7 @@ UnitsForm::UnitsForm(QWidget* parent, qint16 _slot) : QWidget(parent), unitSlot(
     connect(m_mouseTimer, &QTimer::timeout, this, &UnitsForm::onMouseClick);
     connect(ui->originBtn, &QPushButton::clicked, [&]() {
         User::Authority authority = CFG_PARSE.getAuthority();
-        if (authority != User::Invalid && authority != User::Operator)
+        if (authority != User::Invalid)
             emit originBtnClicked();
         else
             QMessageBox::warning(
@@ -68,6 +68,17 @@ bool UnitsForm::getEnable() const
 
 void UnitsForm::on_enableCheck_clicked(bool checked)
 {
+    if (m_checkedNum != 0) {
+        User::Authority authority = CFG_PARSE.getAuthority();
+        if (authority == User::Invalid || authority == User::Operator) {
+            ui->enableCheck->setChecked(!checked);
+            QMessageBox::warning(
+                this, tr("Warning"),
+                tr("The current account has insufficient permissions. Please upgrade the permissions."));
+            return;
+        }
+    }
+
     if (checked) {
         setStyleSheet("");
         ui->unitGroupBox->setStyleSheet("#unitGroupBox{border: 2px solid #D5BEB2;}");
@@ -76,6 +87,7 @@ void UnitsForm::on_enableCheck_clicked(bool checked)
         ui->unitGroupBox->setStyleSheet("#unitGroupBox{border: 2px solid grey;}");
     }
     ui->enableCheck->setStyleSheet("color: black");
+    m_checkedNum++;
 }
 
 void UnitsForm::scanSN(const QString& SN)
@@ -256,4 +268,14 @@ void UnitsForm::updateNetState(const QString& str)
     } else {
         ui->label_handlerState->setStyleSheet("QLabel{color:#FF0000;}");
     }
+}
+
+void UnitsForm::on_motorBtn_clicked()
+{
+    User::Authority authority = CFG_PARSE.getAuthority();
+    if (authority != User::Invalid && authority != User::Operator)
+        emit motorBtnClicked();
+    else
+        QMessageBox::warning(this, tr("Warning"),
+                             tr("The current account has insufficient permissions. Please upgrade the permissions."));
 }

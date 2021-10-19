@@ -16,6 +16,7 @@
 #include <QHostAddress>
 #include <thread>
 #include <QTcpSocket>
+#include "MotorDialog.h"
 using namespace std;
 /*****************
 TEST GROUP:
@@ -122,7 +123,8 @@ public slots:
     void onShowWarning(const QString& msg);
     void onShowInfo(const QString& msg);
     void onStartProcess(const QString& cmd);
-	void onTakePhotos();
+    void onTakePhotos();
+    void onMotorBtnClicked();
 
 private:
     bool openCylinder();
@@ -158,6 +160,8 @@ private:
     double getComp_Factor(QString groupName);
 
 private:
+    MotorDialog* m_motorDialog = NULL;
+
     TEST_RESULT testResult;
     QMutex* mutex;
     AlgoSingleTon* palgo = NULL;
@@ -244,8 +248,6 @@ private:
     QString beta_Offset = "";
     QString Xs_Offset = "";
     QString Z_Offset = "";
-
-
 };
 
 #endif  // TESTACTION_H

@@ -66,11 +66,13 @@ signals:
     void doubleMouseClick(qint16 slot);
     void singleStart(qint16 slot, const QString& sn, const std::string& mtcpFilePath);
     void originBtnClicked();
+    void motorBtnClicked();
 
 private slots:
     void on_enableCheck_clicked(bool checked);
     void onMouseClick();
     void onTimerTimeout();
+    void on_motorBtn_clicked();
 
 private:
     void setTestStateStr();
@@ -95,6 +97,7 @@ private:
     int tcnt = 0;
     QDialog* singleDialog = NULL;
     SNInputForm* snForm = NULL;
+    int m_checkedNum = 0;
 };
 
 #endif  // UNITSFORM_H

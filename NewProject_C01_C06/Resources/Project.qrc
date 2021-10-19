@@ -52,5 +52,6 @@
         <file>MainUI/Product.png</file>
         <file>MainUI/click.png</file>
         <file>MainUI/loop.png</file>
+        <file>MainUI/motor.png</file>
     </qresource>
 </RCC>

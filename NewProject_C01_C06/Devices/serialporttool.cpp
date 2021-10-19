@@ -73,24 +73,23 @@ void serialportTool::onSendAndRecv(const QString& msg, const float& timeout, con
         Delay_MSec(10);
         temp_timeout = temp_timeout + 0.01;
 
-        res = response;
-        if (res.contains(suffixStr)) {
+        if (response.contains(suffixStr)) {
             qDebug() << "---1001----";
             break;
         }
 
         if (msg.contains("[0x1,0x82,0x41,0x3") && !msg.contains("SET_pcb[0x1,0x82,0x41,0x3,0x0,0x0,0x0,0x12]")) {
-            res = "[Set motor_Alpha][OK][DONE]\r\n";
+            response = "[Set motor_Alpha][OK][DONE]\r\n";
             break;
         }
     }
 
-    if (res.contains(suffixStr)) {
+    if (response.contains(suffixStr)) {
         return;
     }
 
-    emit errorHappend(
-        QString("serialport %1 send: %2 failed, timeout %3").arg(serialPort->portName()).arg(msg).arg(timeout));
+    response = QString("serialport %1 send: %2 failed, timeout %3").arg(serialPort->portName()).arg(msg).arg(timeout);
+    emit errorHappend(response);
 }
 
 QString serialportTool::sendDataWithResponse(const QString& msg, const float& timeout, const QString& suffixStr)
