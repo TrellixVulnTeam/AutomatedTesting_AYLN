@@ -75,6 +75,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     m_testplan_tool_flow =
         std::shared_ptr<TestPlanInfo>(new TestPlanInfo(QString::fromStdString(CFG_PARSE.getFlowCsvPath())));
     QString positionStr = FileTool::readContentWithPath(QString::fromStdString(CFG_PARSE.getPositionCsvPath()));
+    m_positionDialog = new PositionDialog(positionStr, this);
+    connect(m_positionDialog, &PositionDialog::positionDataChanged, this, &MainWindow::onPositionDataChanged);
+    connect(ui->actionPosition, &QAction::triggered, this, &MainWindow::onPositionAction);
 
     systemTimer = new QTimer();
     connect(systemTimer, SIGNAL(timeout()), this, SLOT(updateSystemTimeUI()));
@@ -900,45 +903,53 @@ void MainWindow::updatePermissions()
     case User::Invalid:
         ui->lineEdit_OperatorID->setReadOnly(true);
         ui->lineEdit_LotName->setReadOnly(true);
+        ui->label_sw_Cfg->setReadOnly(true);
         ui->comboBox_TestMode->setEnabled(false);
         ui->StartButton->setHidden(true);
         ui->actionUserManager->setEnabled(false);
         ui->actionPerference->setEnabled(false);
         ui->actionLoadProfile->setEnabled(false);
         ui->actionLoopTest->setEnabled(false);
+        ui->actionPosition->setEnabled(false);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::Operator:
         ui->lineEdit_OperatorID->setReadOnly(true);
         ui->lineEdit_LotName->setReadOnly(true);
+        ui->label_sw_Cfg->setReadOnly(true);
         ui->comboBox_TestMode->setEnabled(false);
         ui->StartButton->setHidden(true);
         ui->actionUserManager->setEnabled(false);
         ui->actionPerference->setEnabled(false);
         ui->actionLoadProfile->setEnabled(false);
         ui->actionLoopTest->setEnabled(false);
+        ui->actionPosition->setEnabled(false);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::TestE:
         ui->lineEdit_OperatorID->setReadOnly(false);
         ui->lineEdit_LotName->setReadOnly(false);
+        ui->label_sw_Cfg->setReadOnly(false);
         ui->comboBox_TestMode->setEnabled(true);
         ui->StartButton->setHidden(true);
         ui->actionUserManager->setEnabled(true);
         ui->actionPerference->setEnabled(true);
         ui->actionLoadProfile->setEnabled(true);
         ui->actionLoopTest->setEnabled(true);
+        ui->actionPosition->setEnabled(true);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::Developer:
         ui->lineEdit_OperatorID->setReadOnly(false);
         ui->lineEdit_LotName->setReadOnly(false);
+        ui->label_sw_Cfg->setReadOnly(false);
         ui->comboBox_TestMode->setEnabled(true);
         ui->StartButton->setHidden(false);
         ui->actionUserManager->setEnabled(true);
         ui->actionPerference->setEnabled(true);
         ui->actionLoadProfile->setEnabled(true);
         ui->actionLoopTest->setEnabled(true);
+        ui->actionPosition->setEnabled(true);
         ui->actionCommunicationTool->setEnabled(true);
         break;
     default:
@@ -987,4 +998,24 @@ void MainWindow::closeEvent(QCloseEvent* event)
     dcReleaseModule();
     dcReleaseSystem();
     QMainWindow::closeEvent(event);
+}
+
+void MainWindow::onPositionAction()
+{
+    if (NULL != m_positionDialog)
+        m_positionDialog->exec();
+}
+
+void MainWindow::onPositionDataChanged(const QString& data)
+{
+    QString positionName = QString::fromStdString(Util::GetFileName(CFG_PARSE.getPositionCsvPath()));
+    QString path = QString::fromStdString(CFG_PARSE.getPositionCsvPath());
+    path = path.replace(positionName, "");
+
+    LOG_INFO("[Main] Update %s%s", path.toStdString().c_str(), positionName.toStdString().c_str());
+    FileTool::writeContentWithPath("", data, path, positionName, true);
+
+    for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
+        testactionList.at(i)->reloadPosition(data);
+    }
 }

@@ -85,6 +85,7 @@ public:
     void connectDevice();
     void reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestplaninfo,
                         const std::shared_ptr<TestPlanInfo>& tempFlowinfo, const QString& positionStr);
+    void reloadPosition(const QString& positionStr);
 
     static void onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, void* context);
 

@@ -18,7 +18,7 @@ QString FileTool::readContentWithPath(const QString& path)
 }
 
 void FileTool::writeContentWithPath(const QString& title, const QString& msg, const QString& path,
-                                    const QString& suffix)
+                                    const QString& suffix, bool isClear)
 {
     if (!QDir(path).exists()) {
 
@@ -27,11 +27,13 @@ void FileTool::writeContentWithPath(const QString& title, const QString& msg, co
 
     QString filePath = path + suffix;
     QFile aFile(filePath);
-
     if (aFile.exists(filePath)) {
         if (aFile.open(QIODevice::Append)) {
 
             QByteArray writeBuffer = msg.toUtf8();
+            if (isClear)
+                aFile.resize(0);
+
             aFile.write((writeBuffer));
             aFile.close();
         }

@@ -33,6 +33,7 @@
 #include "LoadProfileDialog.h"
 #include "PreferencesDialog.h"
 #include "MtcpProtocol.h"
+#include "PositionDialog.h"
 
 namespace Ui
 {
@@ -83,6 +84,7 @@ private slots:
                         const QString& siteID, QString& projectID, QString& config);
     void onLoginAction();
     void onLoopTestAction();
+    void onPositionAction();
     void onLoadProfileAction();
     void onPreferencesAction();
     void ononCommunicationToolAction();
@@ -95,6 +97,7 @@ private slots:
     void onMtcpConnectedStatus(int status);
     void onGetLotName(const QString& lotName, int& ret);
     void onSavePivotFile(const QString& path, int& ret);
+    void onPositionDataChanged(const QString& data);
 
 private:
     void generateUnits(const int& UnitCount);
@@ -111,6 +114,7 @@ private:
 private:
     Ui::MainWindow* ui;
 
+    PositionDialog* m_positionDialog = NULL;
     AboutDialog* m_aboutDialog = NULL;
     UserManagerDialog* m_userManagerDialog = NULL;
     LoginDialog* m_loginDialog = NULL;

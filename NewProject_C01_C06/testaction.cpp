@@ -37,16 +37,7 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
 
     palgo = AlgoSingleTon::getInstance();
     initTcpSocketForHandler();
-
-    QList<QString> list = positionStr.split("\n");
-    list_Xp = list[1 + 8 * unitNum].split(",");
-    list_Y = list[2 + 8 * unitNum].split(",");
-    list_Z = list[3 + 8 * unitNum].split(",");
-    list_Beta = list[4 + 8 * unitNum].split(",");
-    list_Gamma = list[5 + 8 * unitNum].split(",");
-    Xs_Offset = list[6 + 8 * unitNum].replace("Xs_Offset:,", "").replace(",", "").replace(";", ",");
-    Z_Offset = list[7 + 8 * unitNum].replace("Z_Offset:,", "").replace(",", "");
-    beta_Offset = list[8 + 8 * unitNum].replace("Beta_Offset:,", "").replace(",", "").replace(";", ",");
+    reloadPosition(positionStr);
 
     m_process = std::shared_ptr<QProcess>(new QProcess);
 
@@ -74,6 +65,11 @@ void TestAction::reloadTestPlan(const std::shared_ptr<TestPlanInfo>& tempTestpla
     m_testFlowTool = tempFlowinfo;
     titleStr = tempTestplaninfo->getHeadTitle();
 
+    reloadPosition(positionStr);
+}
+
+void TestAction::reloadPosition(const QString& positionStr)
+{
     QList<QString> list = positionStr.split("\n");
     list_Xp = list[1 + 8 * unitNum].split(",");
     list_Y = list[2 + 8 * unitNum].split(",");

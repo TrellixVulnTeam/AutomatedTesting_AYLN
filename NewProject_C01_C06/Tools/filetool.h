@@ -13,7 +13,7 @@ public:
     static QString readContentWithPath(const QString& path);
 
     static void writeContentWithPath(const QString& title, const QString& msg, const QString& path,
-                                     const QString& suffix);  //接收返回信息
+                                     const QString& suffix, bool isClear = false);  //接收返回信息
 };
 
 #endif  // FILETOOL_H

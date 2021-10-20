@@ -204,14 +204,9 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="label_sw_Cfg">
-          <property name="font">
-           <font>
-            <family>Arial</family>
-           </font>
-          </property>
-          <property name="text">
-           <string>Config01</string>
+         <widget class="QLineEdit" name="label_sw_Cfg">
+          <property name="styleSheet">
+           <string notr="true">border-radius:5px;</string>
           </property>
          </widget>
         </item>
@@ -517,6 +512,7 @@ QPushButton:hover{
      <string>Tools</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="actionPosition"/>
     <addaction name="actionLoopTest"/>
     <addaction name="actionLoadProfile"/>
     <addaction name="actionCommunicationTool"/>
@@ -570,6 +566,11 @@ QPushButton:hover{
   <action name="actionCommunicationTool">
    <property name="text">
     <string>CommunicationTool</string>
+   </property>
+  </action>
+  <action name="actionPosition">
+   <property name="text">
+    <string>Position</string>
    </property>
   </action>
  </widget>

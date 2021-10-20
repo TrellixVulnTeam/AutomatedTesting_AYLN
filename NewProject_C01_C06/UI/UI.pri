@@ -11,7 +11,8 @@ FORMS += \
     $$PWD/LoopTestDialog.ui \
     $$PWD/SportsWidget.ui \
     $$PWD/MoveBtn.ui \
-    $$PWD/MotorDialog.ui
+    $$PWD/MotorDialog.ui \
+    $$PWD/PositionDialog.ui
 
 HEADERS += \
     $$PWD/logunitui.h \
@@ -25,7 +26,8 @@ HEADERS += \
     $$PWD/LoopTestDialog.h \
     $$PWD/SportsWidget.h \
     $$PWD/MoveBtn.h \
-    $$PWD/MotorDialog.h
+    $$PWD/MotorDialog.h \
+    $$PWD/PositionDialog.h
 
 SOURCES += \
     $$PWD/logunitui.cpp \
@@ -39,6 +41,7 @@ SOURCES += \
     $$PWD/LoopTestDialog.cpp \
     $$PWD/SportsWidget.cpp \
     $$PWD/MoveBtn.cpp \
-    $$PWD/MotorDialog.cpp
+    $$PWD/MotorDialog.cpp \
+    $$PWD/PositionDialog.cpp
 
 INCLUDEPATH +=  $$PWD
