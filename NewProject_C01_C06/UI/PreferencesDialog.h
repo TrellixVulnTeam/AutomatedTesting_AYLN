@@ -29,6 +29,9 @@ public slots:
     void clickLanguageAction(QTranslator& tran);
 
 private:
+    void showEvent(QShowEvent* event) override;
+
+private:
     Ui::PreferencesDialog* ui;
     bool checkPreferencesSettingIsChange();
 };

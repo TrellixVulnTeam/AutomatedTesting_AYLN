@@ -30,6 +30,7 @@ public slots:
 
 private:
     void closeEvent(QCloseEvent* evt) override;
+    void showEvent(QShowEvent* event);
 
 private:
     Ui::LoopTestDialog* ui;

@@ -2,6 +2,7 @@
 #include "ui_PreferencesDialog.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPropertyAnimation>
 #include "ConfigParse.h"
 
 PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent), ui(new Ui::PreferencesDialog)
@@ -139,4 +140,15 @@ void PreferencesDialog::clickLanguageAction(QTranslator& tran)
 {
     qApp->installTranslator(&tran);
     ui->retranslateUi(this);
+}
+
+void PreferencesDialog::showEvent(QShowEvent* event)
+{
+    QDialog::showEvent(event);
+
+    QPropertyAnimation* animation = new QPropertyAnimation(this, "geometry");
+    animation->setStartValue(QRect(-this->width(), -this->height(), this->width(), this->height()));
+    animation->setEndValue(QRect(this->geometry()));
+    //    animation->setEasingCurve(QEasingCurve::OutBounce);
+    animation->start();
 }

@@ -56,6 +56,8 @@ private:
     SportsWidget* m_productW = NULL;
     ConfigDevice* m_devices = NULL;
     int m_slot = 0;
+    int m_maxW = 1560;
+    int m_maxH = 950;
 
     QObject* m_uart1 = NULL;
     QObject* m_uart2 = NULL;

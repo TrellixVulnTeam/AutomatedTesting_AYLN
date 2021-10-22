@@ -27,7 +27,8 @@ HEADERS += \
     $$PWD/SportsWidget.h \
     $$PWD/MoveBtn.h \
     $$PWD/MotorDialog.h \
-    $$PWD/PositionDialog.h
+    $$PWD/PositionDialog.h \
+    $$PWD/StartLoadForm.h
 
 SOURCES += \
     $$PWD/logunitui.cpp \
@@ -42,6 +43,7 @@ SOURCES += \
     $$PWD/SportsWidget.cpp \
     $$PWD/MoveBtn.cpp \
     $$PWD/MotorDialog.cpp \
-    $$PWD/PositionDialog.cpp
+    $$PWD/PositionDialog.cpp \
+    $$PWD/StartLoadForm.cpp
 
 INCLUDEPATH +=  $$PWD

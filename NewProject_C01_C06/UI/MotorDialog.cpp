@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QShowEvent>
 #include <QMessageBox>
+#include <QPropertyAnimation>
 
 #define U_CKECK()                                                                                              \
     if (m_uart1 == NULL || m_uart2 == NULL) {                                                                  \
@@ -21,8 +22,8 @@ MotorDialog::MotorDialog(ConfigDevice* device, int slot, QWidget* parent)
     //    windowFlag |= Qt::WindowMinMaxButtonsHint;
     //    windowFlag |= Qt::WindowCloseButtonHint;
     //    setWindowFlags(windowFlag);
-    resize(1560, 950);
 
+    resize(m_maxW, m_maxH);
     connect(this, &MotorDialog::appendLogTextEdit, this, &MotorDialog::onAppendLogTextEdit);
 
     m_lightSourceW = new SportsWidget(LightSource, this);
@@ -174,4 +175,9 @@ void MotorDialog::on_setCMBtn_clicked() {}
 void MotorDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
+    QPropertyAnimation* animation = new QPropertyAnimation(this, "windowOpacity");
+    animation->setDuration(1000);
+    animation->setStartValue(0);
+    animation->setEndValue(0.95);
+    animation->start();
 }

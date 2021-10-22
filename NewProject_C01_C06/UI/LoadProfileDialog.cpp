@@ -2,6 +2,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QApplication>
+#include <QPropertyAnimation>
 #include <QRegExp>
 #include <QDebug>
 #include "ConfigParse.h"
@@ -234,4 +235,15 @@ void LoadProfileDialog::clickLanguageAction(QTranslator&)
     m_loadBtn->setText(tr("Load"));
     m_cancel->setText(tr("Cancel"));
     emit clickLanguageActionSignal();
+}
+
+void LoadProfileDialog::showEvent(QShowEvent* event)
+{
+    QDialog::showEvent(event);
+
+    QPropertyAnimation* animation = new QPropertyAnimation(this, "geometry");
+    animation->setStartValue(QRect(-this->width(), this->height(), this->width(), this->height()));
+    animation->setEndValue(QRect(this->geometry()));
+    //    animation->setEasingCurve(QEasingCurve::OutBounce);
+    animation->start();
 }

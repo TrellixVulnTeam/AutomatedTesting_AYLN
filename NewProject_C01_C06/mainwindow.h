@@ -34,6 +34,7 @@
 #include "PreferencesDialog.h"
 #include "MtcpProtocol.h"
 #include "PositionDialog.h"
+#include "StartLoadForm.h"
 
 namespace Ui
 {
@@ -114,6 +115,7 @@ private:
 private:
     Ui::MainWindow* ui;
 
+    StartLoadForm* m_startLoadForm = NULL;
     PositionDialog* m_positionDialog = NULL;
     AboutDialog* m_aboutDialog = NULL;
     UserManagerDialog* m_userManagerDialog = NULL;

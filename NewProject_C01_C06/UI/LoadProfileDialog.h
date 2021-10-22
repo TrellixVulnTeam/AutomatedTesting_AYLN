@@ -58,10 +58,14 @@ public slots:
     void clickLanguageAction(QTranslator&);
 
 private:
+    void showEvent(QShowEvent* event) override;
+
+private:
     QPushButton* m_loadBtn = NULL;
     QPushButton* m_cancel = NULL;
     QList<LoadProfileWidget*> m_profileWidgetList;
     bool checkProfileIsValid();
+
 signals:
     void loadCSVFileSuccessSignal();
     void clickLanguageActionSignal();

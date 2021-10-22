@@ -2,6 +2,7 @@
 #include "ui_LoopTestDialog.h"
 #include "ConfigParse.h"
 #include <QMessageBox>
+#include <QPropertyAnimation>
 
 LoopTestDialog::LoopTestDialog(QWidget* parent) : QDialog(parent), ui(new Ui::LoopTestDialog)
 {
@@ -51,4 +52,15 @@ void LoopTestDialog::onTestFinished(int _slot)
 {
     if (isVisible() && !isHidden())
         emit finishTest(_slot);
+}
+
+void LoopTestDialog::showEvent(QShowEvent* event)
+{
+    QDialog::showEvent(event);
+
+    QPropertyAnimation* animation = new QPropertyAnimation(this, "geometry");
+    animation->setStartValue(QRect(-this->width(), this->height(), this->width(), this->height()));
+    animation->setEndValue(QRect(this->geometry()));
+    //    animation->setEasingCurve(QEasingCurve::OutBounce);
+    animation->start();
 }

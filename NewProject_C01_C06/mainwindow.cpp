@@ -14,6 +14,9 @@
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    m_startLoadForm = new StartLoadForm();
+    m_startLoadForm->show();
+
     updatePermissions();
     updateWindowTitle();
     ui->label_sw_Cfg->setText(QString::fromStdString(CFG_PARSE.getConfig()));
@@ -152,6 +155,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         testaction->connectDevice();
         testactionList.append(testaction);
     }
+    m_startLoadForm->close();
 
     //    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
 }
@@ -636,6 +640,9 @@ void MainWindow::flushClearTable(qint16 slot)
 
 MainWindow::~MainWindow()
 {
+    delete m_startLoadForm;
+    m_startLoadForm = NULL;
+
     for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         TestAction* testaction = testactionList.at(i);
         delete testaction;
@@ -1002,8 +1009,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::onPositionAction()
 {
-    if (NULL != m_positionDialog)
+    if (NULL != m_positionDialog) {
         m_positionDialog->exec();
+    }
 }
 
 void MainWindow::onPositionDataChanged(const QString& data)

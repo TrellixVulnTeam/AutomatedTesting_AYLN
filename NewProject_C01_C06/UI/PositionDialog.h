@@ -31,6 +31,7 @@ private slots:
 
 private:
     void setTabViewModel();
+    void showEvent(QShowEvent* event) override;
 
 private:
     Ui::PositionDialog* ui;
