@@ -18,6 +18,7 @@
 #include <QDir>
 #include <QTranslator>
 #include <QMessageBox>
+#include <QPropertyAnimation>
 #include <serialporttool.h>
 #include <tcpsockettool.h>
 #include <testaction.h>
@@ -129,6 +130,7 @@ private:
     QProcess* m_commTool = NULL;
     LoadProfileDialog* m_loadProfileDialog = NULL;
     PreferencesDialog* m_preferencesDialog = NULL;
+    QPropertyAnimation* m_animation = NULL;
     DynamicMtcp* m_mtcp = NULL;
 
     QItemSelectionModel* theSelection;

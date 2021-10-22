@@ -5,6 +5,7 @@
 #include <QMetaType>
 #include <QDateTime>
 #include <QTimer>
+#include <QPropertyAnimation>
 #include "testaction.h"
 #include <QDialog>
 #include "SNInputForm.h"
@@ -93,6 +94,7 @@ private:
     QDateTime m_endTime;
     QTimer* m_timer = NULL;
     QTimer* m_mouseTimer = NULL;
+    QPropertyAnimation* m_animation = NULL;
     int pcnt = 0;
     int tcnt = 0;
     QDialog* singleDialog = NULL;

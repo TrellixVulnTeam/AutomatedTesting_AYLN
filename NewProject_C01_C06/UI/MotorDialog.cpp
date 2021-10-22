@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QShowEvent>
 #include <QMessageBox>
-#include <QPropertyAnimation>
+#include <QPushButton>
 
 #define U_CKECK()                                                                                              \
     if (m_uart1 == NULL || m_uart2 == NULL) {                                                                  \
@@ -175,9 +175,40 @@ void MotorDialog::on_setCMBtn_clicked() {}
 void MotorDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    QPropertyAnimation* animation = new QPropertyAnimation(this, "windowOpacity");
-    animation->setDuration(1000);
-    animation->setStartValue(0);
-    animation->setEndValue(0.95);
-    animation->start();
+    if (NULL == m_animation) {
+
+        m_animation = new QPropertyAnimation(this, "windowOpacity");
+        connect(m_animation, &QPropertyAnimation::finished, [&]() {
+            if (m_groupAnimations.size() == 0) {
+                QPropertyAnimation* ani = new QPropertyAnimation(ui->groupBox_control, "geometry");
+                ani->setDuration(1000);
+                ani->setStartValue(QRect(ui->groupBox_control->geometry().x(), -ui->groupBox_control->height(),
+                                         ui->groupBox_control->width(), ui->groupBox_control->height()));
+                ani->setEndValue(QRect(ui->groupBox_control->geometry()));
+                ani->setEasingCurve(QEasingCurve::OutBounce);
+                ani->start();
+                m_groupAnimations.push_back(ani);
+
+                QPropertyAnimation* ani2 = new QPropertyAnimation(ui->groupBox_move, "geometry");
+                ani2->setDuration(1000);
+                ani2->setStartValue(QRect(ui->groupBox_move->geometry().x(), -ui->groupBox_move->height(),
+                                          ui->groupBox_move->width(), ui->groupBox_move->height()));
+                ani2->setEndValue(QRect(ui->groupBox_move->geometry()));
+                ani2->setEasingCurve(QEasingCurve::OutBounce);
+                ani2->start();
+                m_groupAnimations.push_back(ani2);
+            } else {
+                foreach (QPropertyAnimation* ani, m_groupAnimations) {
+                    ani->start();
+                }
+            }
+        });
+
+        m_animation->setDuration(1000);
+        m_animation->setStartValue(0);
+        m_animation->setEndValue(0.95);
+        m_animation->start();
+    } else {
+        m_animation->start();
+    }
 }

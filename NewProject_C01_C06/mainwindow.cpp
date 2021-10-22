@@ -422,6 +422,15 @@ int MainWindow::produceNum(int shang)
 void MainWindow::showEvent(QShowEvent* event)
 {
     QMainWindow::showEvent(event);
+    if (NULL == m_animation) {
+        m_animation = new QPropertyAnimation(this, "windowOpacity");
+        m_animation->setDuration(1000);
+        m_animation->setStartValue(0);
+        m_animation->setEndValue(1);
+        m_animation->start();
+    } else {
+        m_animation->start();
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)

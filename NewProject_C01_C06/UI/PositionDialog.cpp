@@ -2,7 +2,6 @@
 #include "ui_PositionDialog.h"
 #include <QDebug>
 #include <QMessageBox>
-#include <QPropertyAnimation>
 
 PositionDialog::PositionDialog(QString positionStr, QWidget* parent)
     : m_positionStr(positionStr), QDialog(parent), ui(new Ui::PositionDialog)
@@ -176,9 +175,13 @@ void PositionDialog::showEvent(QShowEvent* event)
 {
     QDialog::showEvent(event);
 
-    QPropertyAnimation* animation = new QPropertyAnimation(this, "geometry");
-    animation->setStartValue(QRect(this->geometry().x(), -this->height(), this->width(), this->height()));
-    animation->setEndValue(QRect(this->geometry()));
-    animation->setEasingCurve(QEasingCurve::OutBounce);
-    animation->start();
+    if (NULL == m_animation) {
+        m_animation = new QPropertyAnimation(this, "geometry");
+        m_animation->setStartValue(QRect(this->geometry().x(), -this->height(), this->width(), this->height()));
+        m_animation->setEndValue(QRect(this->geometry()));
+        m_animation->setEasingCurve(QEasingCurve::OutBounce);
+        m_animation->start();
+    } else {
+        m_animation->start();
+    }
 }

@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QTranslator>
+#include <QPropertyAnimation>
 
 namespace Ui
 {
@@ -33,6 +34,7 @@ private:
 
 private:
     Ui::PreferencesDialog* ui;
+    QPropertyAnimation* m_animation = NULL;
     bool checkPreferencesSettingIsChange();
 };
 

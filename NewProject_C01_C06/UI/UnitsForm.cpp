@@ -87,6 +87,19 @@ void UnitsForm::on_enableCheck_clicked(bool checked)
         ui->unitGroupBox->setStyleSheet("#unitGroupBox{border: 2px solid grey;}");
     }
     ui->enableCheck->setStyleSheet("color: black");
+
+    if (m_checkedNum != 0) {
+        if (NULL == m_animation) {
+            m_animation = new QPropertyAnimation(this, "geometry");
+            m_animation->setDuration(2000);
+            m_animation->setStartValue(QRect(this->geometry().x(), -this->height(), this->width(), this->height()));
+            m_animation->setEndValue(QRect(this->geometry()));
+            m_animation->setEasingCurve(QEasingCurve::OutBounce);
+            m_animation->start();
+        } else {
+            m_animation->start();
+        }
+    }
     m_checkedNum++;
 }
 

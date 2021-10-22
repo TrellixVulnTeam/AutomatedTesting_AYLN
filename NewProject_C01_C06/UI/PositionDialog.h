@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QStandardItemModel>
+#include <QPropertyAnimation>
 
 class QStandardItemModel;
 
@@ -38,6 +39,7 @@ private:
 
     QString m_positionStr;
     QStandardItemModel* m_model = NULL;
+    QPropertyAnimation* m_animation = NULL;
     bool m_isDataChanged = false;
 };
 

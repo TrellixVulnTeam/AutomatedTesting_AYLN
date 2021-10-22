@@ -2,6 +2,7 @@
 #define LOOPTESTDIALOG_H
 
 #include <QDialog>
+#include <QPropertyAnimation>
 #include "LoopTestWidget.h"
 
 namespace Ui
@@ -35,6 +36,7 @@ private:
 private:
     Ui::LoopTestDialog* ui;
     std::vector<LoopTestWidget*> m_loopWs;
+    QPropertyAnimation* m_animation = NULL;
 };
 
 #endif  // LOOPTESTDIALOG_H

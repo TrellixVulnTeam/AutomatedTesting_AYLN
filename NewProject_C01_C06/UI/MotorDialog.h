@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "SportsWidget.h"
 #include <configdevice.h>
+#include <QPropertyAnimation>
 
 namespace Ui
 {
@@ -61,6 +62,8 @@ private:
 
     QObject* m_uart1 = NULL;
     QObject* m_uart2 = NULL;
+    QPropertyAnimation* m_animation = NULL;
+    std::vector<QPropertyAnimation*> m_groupAnimations;
 };
 
 #endif  // MOTORDIALOG_H

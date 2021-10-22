@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QTranslator>
+#include <QPropertyAnimation>
 
 class LoadProfileWidget : public QWidget
 {
@@ -63,6 +64,7 @@ private:
 private:
     QPushButton* m_loadBtn = NULL;
     QPushButton* m_cancel = NULL;
+    QPropertyAnimation* m_animation = NULL;
     QList<LoadProfileWidget*> m_profileWidgetList;
     bool checkProfileIsValid();
 

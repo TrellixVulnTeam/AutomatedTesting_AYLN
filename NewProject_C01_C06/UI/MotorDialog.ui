@@ -33,7 +33,7 @@ QGroupBox{
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout_5">
+    <layout class="QVBoxLayout" name="topLayout">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4">
        <item>
@@ -73,7 +73,7 @@ QGroupBox{
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_2">
+          <widget class="QGroupBox" name="groupBox_control">
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -392,7 +392,7 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item row="0" column="0">
-          <widget class="QGroupBox" name="groupBox_4">
+          <widget class="QGroupBox" name="groupBox_move">
            <property name="styleSheet">
             <string notr="true"/>
            </property>
