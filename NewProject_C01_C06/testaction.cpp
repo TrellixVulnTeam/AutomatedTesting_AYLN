@@ -556,8 +556,8 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                         int c = QString::fromStdString(hexS).toInt(nullptr, 16);
                         float d = *(float*)&c;
 
-                        double _t = timeStep * (floor((i - 17) / 4) + 1);
-                        tData[(int)floor((i - 17) / 4) + 1] = _t;
+                        double _t = timeStep * (floor((i - 17) / 4) + 1);  // not start on 0
+                        tData[(int)floor((i - 17) / 4)] = _t;
 
                         if (tempItem->Group == "Offset") {
                             if (d > 10 || d < 1) {
@@ -567,14 +567,12 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                             sum += d * d;
                             fileStr.append(QString("%1,\r\n").arg(d));
                             csvContent << _t << "," << d << "\n";
-                            targetVData[(int)floor((i - 17) / 4) + 1] = (double)d;
+                            targetVData[(int)floor((i - 17) / 4)] = (double)d;
                         } else {
                             double tmpVal = cmp_factor * (1e6 * d / 10000.0) /*1e6 * (d - pthis->rms) / 10000.0*/;
                             fileStr.append(QString("%1,\n").arg(QString::number(d, 'f', 12)));
                             csvContent << _t << "," << tmpVal << "\n";
-                            targetVData[(int)floor((i - 17) / 4) + 1] = tmpVal;
-                            //                            qDebug() << d << "   " << rms << "    " <<
-                            //                            QString::number(tmpVal);
+                            targetVData[(int)floor((i - 17) / 4)] = tmpVal;
                         }
                         tempVec.clear();
                     }
@@ -597,8 +595,9 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                         pthis->outputPath = pthis->outputDataPath + "Noise/" + tempItem->Group + "/";
                         Util::MakeNDir(pthis->outputPath.toStdString());
                         pthis->palgo->jptProcessSingleNoise(pthis->outputPath, timeData, voltageData, dataSize);
-                        //                                        palgo->jptProcessSingleNoiseDemo(rawDataFilePath,
-                        //                                        rawDataFileName, outputPath);
+                        //                        pthis->palgo->jptProcessSingleNoiseDemo(pthis->rawDataFilePath,
+                        //                        pthis->rawDataFileName,
+                        //                                                                pthis->outputPath);
                     } else {
                         pthis->outputPath =
                             pthis->outputDataPath + "SingleStream/DC_Coupled/" + "/" + tempItem->Group + "/";
@@ -609,10 +608,10 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                         CFG_PARSE.getTargetAngleAndVel(tempItem->Group.toStdString(), targetAngle, velcoty);
                         pthis->palgo->jptProcessSingle(pthis->outputPath, velcoty, targetAngle, timeData, voltageData,
                                                        dataSize);
-                        //                                        palgo->jptProcessSingleDemo(rawDataFilePath,
-                        //                                        rawDataFileName, outputPath,
-                        //                                                                    velcoty,
-                        //                                                                    targetAngle);
+                        //                        pthis->palgo->jptProcessSingleDemo(pthis->rawDataFilePath,
+                        //                        pthis->rawDataFileName,
+                        //                                                           pthis->outputPath, velcoty,
+                        //                                                           targetAngle);
                     }
 
                     for (size_t idx = 0; idx < timeData.size(); idx++) {

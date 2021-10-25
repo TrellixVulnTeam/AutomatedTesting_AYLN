@@ -597,10 +597,10 @@ t_mlError AlgoSingleTon::jptProcessSingleDemo(QString filePath, QString fileName
             err = dcAlgo_jptProcessSingle(&input, (const double**)timeData.data(), (const double**)voltageDat.data(),
                                           dataSize.data(), numOfFiles, &fomCnt, &fomData, &fomName);
         }
-
         catch (...) {
             qDebug() << "DLL error when deal data.";
         }
+
         st = mlUtil_getCurrentTime();
 
         printf_s("*** Process DEMO Data with CSV *** %d, %s in loadcsv = %f algo = %f\n", err,
@@ -1090,7 +1090,7 @@ t_mlError AlgoSingleTon::jptProcessSingleNoise(const QString& outputPath, const 
 
         input.velocity[0] = 7.93;
         input.targetAngle = 51.0f;
-        input.GainTIA = 55e-3;
+        input.GainTIA = 1;
         input.FDthr = 1.414;
         input.dataSamplingRate = 625e3;
         input.enablePlot = 1;
@@ -1195,10 +1195,10 @@ t_mlError AlgoSingleTon::jptProcessSingleNoiseDemo(QString filePath, QString fil
         input.velocity[0] = 7.93;  // legacy implementation, for possible different v's for multi-file processing
                                    // input.vMeasured        = 100; //11.83f;
         input.targetAngle = 51.0f;
-        input.GainTIA = 55e-3;  // Use GainTIA = 1 if data is already in uA, test data uses 55e3 for AC gain
-                                // input.lambda = 0.850; // wavelength is in um. but this is already hardcoded and
-                                // cannot be changed.
-        input.FDthr = 1.414;    // not really used but it needs a number. It will be deprecated if EE doesn't need it.
+        input.GainTIA = 1;    // Use GainTIA = 1 if data is already in uA, test data uses 55e3 for AC gain
+                              // input.lambda = 0.850; // wavelength is in um. but this is already hardcoded and
+                              // cannot be changed.
+        input.FDthr = 1.414;  // not really used but it needs a number. It will be deprecated if EE doesn't need it.
         input.dataSamplingRate = 625e3;
         input.enablePlot = 1;
         input.isNoiseFoM =
