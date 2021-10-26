@@ -1,5 +1,5 @@
 #include "algosingleton.h"
-//#include <QThread>
+
 AlgoSingleTon* AlgoSingleTon::getInstance()
 {
     static AlgoSingleTon* pAlgo = nullptr;
@@ -66,7 +66,6 @@ void AlgoSingleTon::demo_loadTargetCsv(const char* csvFile, double** t, double**
     *t = (double*)malloc(maxDataSz * sizeof(double));
     *targetV = (double*)malloc(maxDataSz * sizeof(double));
 
-    qDebug() << "step2-2 maxDataSz:" << maxDataSz;
     size_t dataCount = 0;
     for (size_t rIdx = skipRow; rIdx < fileFormat.numOfRows(); rIdx++) {
         const char* rowStr = (char*)fileData + fileFormat.rowStartPos(rIdx);
@@ -1104,11 +1103,11 @@ t_mlError AlgoSingleTon::jptProcessSingleNoise(const QString& outputPath, const 
         err = dcAlgo_jptProcessSingle(&input, (const double**)timeData.data(), (const double**)voltageData.data(),
                                       dataSize.data(), numOfFiles, &fomCnt, &fomData, &fomName);
 
-        //        for (int i = 0; i < fomCnt; i++){
-        //            qDebug() << QString::fromStdString(fomName[i]) << "  -> " << QString::number(fomData[i]);
-        //        }
-
     } while (0);
+
+    for (size_t idx = 0; idx < fomCnt; idx++) {
+        printf_s("* %f %s\n", fomData[idx], fomName[idx]);
+    }
 
     FREE_MEM(fomData);
     for (size_t idx = 0; idx < fomCnt; idx++) {
@@ -1138,8 +1137,6 @@ t_mlError AlgoSingleTon::jptProcessSingleNoiseDemo(QString filePath, QString fil
     //    std::string sampleFileName4 = "DC_Coupled";
     //    std::string sampleFileName5 = "OFFSET";
     //    std::string sampleFileName6 = "NOISE";
-
-    qDebug() << filePath + fileName;
 
     std::vector<std::string> sampleCsv(numOfFiles);
     sampleCsv[0] = filePath.toStdString() + fileName.toStdString();  // sampleDataRoot + "\\" + samplePath + "\\" +
@@ -1211,6 +1208,7 @@ t_mlError AlgoSingleTon::jptProcessSingleNoiseDemo(QString filePath, QString fil
 
         err = dcAlgo_jptProcessSingle(&input, (const double**)timeData.data(), (const double**)voltageDat.data(),
                                       dataSize.data(), numOfFiles, &fomCnt, &fomData, &fomName);
+
         printf_s("*** Process DEMO Data with CSV *** %d, %s in %f\n", err, mlError_getErrorString(err),
                  mlUtil_getCurrentTime() - st);
         printf_s("* FOM Count with CSV %d\n", fomCnt);

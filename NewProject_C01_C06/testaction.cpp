@@ -570,6 +570,10 @@ void TestAction::onDealWithSocketRecv(const QByteArray& recv, Items* tempItem, v
                             targetVData[(int)floor((i - 17) / 4)] = (double)d;
                         } else {
                             double tmpVal = cmp_factor * (1e6 * d / 10000.0) /*1e6 * (d - pthis->rms) / 10000.0*/;
+                            //                            qDebug() << QString("%1").arg(QString::number(d, 'f', 12));
+                            //                            qDebug() << QString("%1").arg(QString::number(tmpVal, 'f',
+                            //                            12));
+
                             fileStr.append(QString("%1,\n").arg(QString::number(d, 'f', 12)));
                             csvContent << _t << "," << tmpVal << "\n";
                             targetVData[(int)floor((i - 17) / 4)] = tmpVal;
