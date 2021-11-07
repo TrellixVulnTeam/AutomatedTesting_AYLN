@@ -36,6 +36,7 @@
 #include "MtcpProtocol.h"
 #include "PositionDialog.h"
 #include "StartLoadForm.h"
+#include "HtmlDialog.h"
 
 namespace Ui
 {
@@ -118,6 +119,7 @@ private:
 
     StartLoadForm* m_startLoadForm = NULL;
     PositionDialog* m_positionDialog = NULL;
+    HtmlDialog* m_htmlDialog = NULL;
     AboutDialog* m_aboutDialog = NULL;
     UserManagerDialog* m_userManagerDialog = NULL;
     LoginDialog* m_loginDialog = NULL;

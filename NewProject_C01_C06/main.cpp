@@ -11,7 +11,6 @@
 #include "ConfigParse.h"
 #include "Util.h"
 #include "MiniDumper.h"
-#include "HtmlDialog.h"
 
 int main(int argc, char* argv[])
 {
@@ -68,8 +67,6 @@ int main(int argc, char* argv[])
         MainWindow w;
         w.resize(QSize(1560, 950));
         w.show();
-        //        HtmlDialog d;
-        //        d.show();
 
         return app.exec();
     }

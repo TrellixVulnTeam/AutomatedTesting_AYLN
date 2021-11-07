@@ -151,6 +151,7 @@ win32{
                        -L$$TM_APP_PATH/$$TEST_MODE/Release
         LIBS += -llog4cplusU
         LIBS += -lMtcpProtocol
+        LIBS += -lZmqRepProtocol
         Mode = release
     }
 
@@ -162,6 +163,7 @@ win32{
     INCLUDEPATH += $$LIBS_PATH/include/
     INCLUDEPATH += $$LIBS_PATH/include/Algo/
     INCLUDEPATH += $$LIBS_PATH/include/Mtcp/
+    INCLUDEPATH += $$LIBS_PATH/include/ZmqRep/
 
     PY_PATH = $$TM_SOURCE_TREE/Python
     PY_PATH ~= s,/,\\,g

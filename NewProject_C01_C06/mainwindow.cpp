@@ -157,6 +157,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     m_startLoadForm->close();
 
+    m_htmlDialog = new HtmlDialog(m_userManagerDialog->getUserSetting());
+    m_htmlDialog->show();
+
     //    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
 }
 

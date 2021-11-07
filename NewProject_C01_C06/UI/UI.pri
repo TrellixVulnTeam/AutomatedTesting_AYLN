@@ -13,7 +13,8 @@ FORMS += \
     $$PWD/MoveBtn.ui \
     $$PWD/MotorDialog.ui \
     $$PWD/PositionDialog.ui \
-    $$PWD/HtmlDialog.ui
+    $$PWD/HtmlDialog.ui \
+    $$PWD/FileWatcherDialog.ui
 
 HEADERS += \
     $$PWD/logunitui.h \
@@ -30,7 +31,8 @@ HEADERS += \
     $$PWD/MotorDialog.h \
     $$PWD/PositionDialog.h \
     $$PWD/StartLoadForm.h \
-    $$PWD/HtmlDialog.h
+    $$PWD/HtmlDialog.h \
+    $$PWD/FileWatcherDialog.h
 
 SOURCES += \
     $$PWD/logunitui.cpp \
@@ -47,6 +49,7 @@ SOURCES += \
     $$PWD/MotorDialog.cpp \
     $$PWD/PositionDialog.cpp \
     $$PWD/StartLoadForm.cpp \
-    $$PWD/HtmlDialog.cpp
+    $$PWD/HtmlDialog.cpp \
+    $$PWD/FileWatcherDialog.cpp
 
 INCLUDEPATH +=  $$PWD

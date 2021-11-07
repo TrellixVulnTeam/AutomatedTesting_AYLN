@@ -15,6 +15,8 @@ import threading
 import time
 from datetime import datetime
 import shutil
+import zmq
+import json
 
 class DiffFile:
     """文件比较类"""
@@ -183,7 +185,39 @@ class Watcher(object):
         self.csvHandel.close()
 
 
+class ZmqReqProtocol(object):
+    def __init__(self, ip='127.0.0.1', port=4399):
+        super(ZmqReqProtocol, self).__init__()
+        self.ip = ip
+        self.port = port
+
+        context = zmq.Context()
+        self.socket = context.socket(zmq.REQ)
+        handle = "tcp://{}:{}".format(self.ip, self.port)
+        # socket.setsockopt( zmq.RCVTIMEO, 4000 )   #设置超时
+        self.socket.connect(handle)
+
+    def sendString(self, changeList):
+        try:
+            cmd = {"ChangeList": changeList, "ErrorStr": ""}
+            self.socket.send_string(json.dumps(cmd))
+            data = self.socket.recv()
+            ret = str(data, encoding="utf-8")
+            dic = json.loads(ret)
+            print(dic)
+        except Exception as e:
+            print(str(e))
+
+    def __del__(self):
+        self.socket.close()
+
 if __name__ == '__main__':
 
     # watcher = Watcher(r'C:\Users\Zhigen\Desktop\ChangeLog.csv')
-    watcher = Watcher('C:\\Users\\Zhigen\\Desktop\\test\\', True)
+    # watcher = Watcher('C:\\Users\\Zhigen\\Desktop\\test\\', True)
+
+    zmqReq = ZmqReqProtocol()
+
+    list = [r'C:\Users\Zhigen\Desktop\ChangeLog\2021-11-05-20-44-39.html',
+            r'C:\Users\Zhigen\Desktop\ChangeLog\2021-11-05-20-57-55.html']
+    zmqReq.sendString(list)
