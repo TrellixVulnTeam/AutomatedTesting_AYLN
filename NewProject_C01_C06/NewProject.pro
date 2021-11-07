@@ -8,7 +8,8 @@ QT       += core gui \
             widgets \
             serialport \
             network \
-            script
+            script \
+            webenginewidgets
 
 TARGET = NewProject
 TEMPLATE = app

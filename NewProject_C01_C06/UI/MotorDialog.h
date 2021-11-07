@@ -20,11 +20,11 @@ public:
     ~MotorDialog();
 
 signals:
-    void appendLogTextEdit(QString msg);
+    void buttonClickEvent(QString msg);
 
 private slots:
     void onModuleBtnClicked(BtnType btnType);
-    void onAppendLogTextEdit(QString msg);
+    void onButtonClickEvent(QString msg);
 
     void on_homeingBtn_clicked();
     void on_startBtn_clicked();
@@ -47,6 +47,11 @@ private slots:
     void on_va1Btn_clicked();
     void on_va2Btn_clicked();
     void on_setCMBtn_clicked();
+    QString convertCmd(QString axis, QString value, QString& direction);
+    void calPlusCntToHex(const QString& plusStr, QString& hex1, QString& hex2, QString& hex3,
+                         QString& hex4);
+
+    void on_SpeedCombobox_currentIndexChanged(int index);
 
 private:
     void showEvent(QShowEvent* event) override;
@@ -62,6 +67,8 @@ private:
 
     QObject* m_uart1 = NULL;
     QObject* m_uart2 = NULL;
+    QObject* m_tcp = NULL;
+
     QPropertyAnimation* m_animation = NULL;
     std::vector<QPropertyAnimation*> m_groupAnimations;
 };

@@ -12,7 +12,8 @@ FORMS += \
     $$PWD/SportsWidget.ui \
     $$PWD/MoveBtn.ui \
     $$PWD/MotorDialog.ui \
-    $$PWD/PositionDialog.ui
+    $$PWD/PositionDialog.ui \
+    $$PWD/HtmlDialog.ui
 
 HEADERS += \
     $$PWD/logunitui.h \
@@ -28,7 +29,8 @@ HEADERS += \
     $$PWD/MoveBtn.h \
     $$PWD/MotorDialog.h \
     $$PWD/PositionDialog.h \
-    $$PWD/StartLoadForm.h
+    $$PWD/StartLoadForm.h \
+    $$PWD/HtmlDialog.h
 
 SOURCES += \
     $$PWD/logunitui.cpp \
@@ -44,6 +46,7 @@ SOURCES += \
     $$PWD/MoveBtn.cpp \
     $$PWD/MotorDialog.cpp \
     $$PWD/PositionDialog.cpp \
-    $$PWD/StartLoadForm.cpp
+    $$PWD/StartLoadForm.cpp \
+    $$PWD/HtmlDialog.cpp
 
 INCLUDEPATH +=  $$PWD

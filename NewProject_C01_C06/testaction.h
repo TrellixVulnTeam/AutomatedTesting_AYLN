@@ -179,7 +179,7 @@ private:
     int plus_Z;
 
     double rms = 0;
-
+    double st = 0;
     bool isDatabad = false;
     bool isHexData = true;
     bool isReady = true;
@@ -193,6 +193,7 @@ private:
     QString titleStr;
     QString startTime;
     QString endTime;
+    QString TestTime = "0.0";
     QString tcpRecvStr = "";
     QString errorMessage_H = "";
     QString csvInfo_H = "";
@@ -249,6 +250,8 @@ private:
     QString beta_Offset = "";
     QString Xs_Offset = "";
     QString Z_Offset = "";
+
+    bool isDebug = false;
 };
 
 #endif  // TESTACTION_H

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><Configuration>
 	<ProjectName>X2155 Station</ProjectName>
-        <Version>V1.0.7_M</Version>
+        <Version>V1.0.14_M</Version>
 	<Config>Cfg0001</Config>
 	<!--Offset must be over 0-->
 	<Offset>4</Offset>
@@ -13,8 +13,8 @@
 	<PositionCsvPath>[App]/Config/Position.csv</PositionCsvPath>
 	<MachineID>MOS001</MachineID>
 	<MTCP>FALSE</MTCP>
-	<MtcpIP>127.0.0.1</MtcpIP>
-	<MtcpPort>6666</MtcpPort>
+        <MtcpIP>169.254.1.11</MtcpIP>
+        <MtcpPort>61802</MtcpPort>
 	<MES>FALSE</MES>
 	<Slot>1-3</Slot>
 	<Alpha>36000</Alpha>

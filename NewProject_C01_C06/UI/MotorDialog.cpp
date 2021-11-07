@@ -24,7 +24,7 @@ MotorDialog::MotorDialog(ConfigDevice* device, int slot, QWidget* parent)
     //    setWindowFlags(windowFlag);
 
     resize(m_maxW, m_maxH);
-    connect(this, &MotorDialog::appendLogTextEdit, this, &MotorDialog::onAppendLogTextEdit);
+    connect(this, &MotorDialog::buttonClickEvent, this, &MotorDialog::onButtonClickEvent);
 
     m_lightSourceW = new SportsWidget(LightSource, this);
     connect(m_lightSourceW, &SportsWidget::moduleBtnClicked, this, &MotorDialog::onModuleBtnClicked);
@@ -40,6 +40,8 @@ MotorDialog::MotorDialog(ConfigDevice* device, int slot, QWidget* parent)
 
     m_uart1 = (QObject*)m_devices->deviceDic[QString("TEST_Uart%2%3").arg(m_slot).arg("1")].value<void*>();
     m_uart2 = (QObject*)m_devices->deviceDic[QString("TEST_Uart%2%3").arg(m_slot).arg("2")].value<void*>();
+    m_tcp = (QObject*)m_devices->deviceDic[QString("TEST_Socket%1").arg(m_slot)].value<void*>();
+
 }
 
 MotorDialog::~MotorDialog()
@@ -47,10 +49,37 @@ MotorDialog::~MotorDialog()
     delete ui;
 }
 
-void MotorDialog::onAppendLogTextEdit(QString msg)
+void MotorDialog::onButtonClickEvent(QString msg)
 {
-    msg = msg.replace("\r\n", "");
-    msg = msg.replace("\n", "");
+    QString axis;
+    QString value;
+    QString direction;
+    QString cmdStr;
+    QString responseStr;
+    QString suffix = "[DONE]\r\n";
+    QString logInfo;
+    QList<QString> infoList = msg.split(",");
+    axis = infoList[0];
+    direction = infoList[1];
+    value = QString("%1").arg(ui->stepValueSpinBox->value());
+    cmdStr = convertCmd(axis,value,direction);
+
+    if(axis.contains("Xs") || axis.contains("Y") || axis.contains("Z"))
+    {
+        QMetaObject::invokeMethod(m_uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(QString, responseStr), Q_ARG(QString, cmdStr),
+                                  Q_ARG(float, 3), Q_ARG(QString, suffix));
+    }
+    else
+    {
+        QMetaObject::invokeMethod(m_uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                                  Q_RETURN_ARG(QString, responseStr), Q_ARG(QString, cmdStr),
+                                  Q_ARG(float, 3), Q_ARG(QString, suffix));
+    }
+
+    logInfo = QString("%1:%2").arg(axis).arg(responseStr);
+    logInfo = logInfo.replace("\r\n", "");
+    logInfo = logInfo.replace("\n", "");
     ui->logTextEdit->moveCursor(QTextCursor::End);
     ui->logTextEdit->setTextColor(Qt::blue);
     ui->logTextEdit->append(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz "));
@@ -58,11 +87,11 @@ void MotorDialog::onAppendLogTextEdit(QString msg)
         || msg.contains("failed", Qt::CaseInsensitive)) {
         ui->logTextEdit->moveCursor(QTextCursor::End);
         ui->logTextEdit->setTextColor(Qt::red);
-        ui->logTextEdit->insertPlainText(msg);
+        ui->logTextEdit->insertPlainText(logInfo);
     } else {
         ui->logTextEdit->moveCursor(QTextCursor::End);
         ui->logTextEdit->setTextColor(Qt::black);
-        ui->logTextEdit->insertPlainText(msg);
+        ui->logTextEdit->insertPlainText(logInfo);
     }
 }
 
@@ -70,40 +99,40 @@ void MotorDialog::onModuleBtnClicked(BtnType btnType)
 {
     switch (btnType) {
     case XPlusBtn:
-        emit appendLogTextEdit("XPlusBtn clicked");
+        emit buttonClickEvent("Xs,0x1");
         break;
     case XMinusBtn:
-        emit appendLogTextEdit("XMinusBtn clicked");
+        emit buttonClickEvent("Xs,0x0");
         break;
     case YPlusBtn:
-        emit appendLogTextEdit("YPlusBtn clicked");
+        emit buttonClickEvent("Y,0x0");
         break;
     case YMinusBtn:
-        emit appendLogTextEdit("YMinusBtn clicked");
+        emit buttonClickEvent("Y,0x1");
         break;
     case ZPlusBtn:
-        emit appendLogTextEdit("ZPlusBtn clicked");
+        emit buttonClickEvent("Z,0x1");
         break;
     case ZMinusBtn:
-        emit appendLogTextEdit("ZMinusBtn clicked");
+        emit buttonClickEvent("Z,0x0");
         break;
     case X1PlusBtn:
-        emit appendLogTextEdit("X1PlusBtn clicked");
+        emit buttonClickEvent("Xp,0x0");
         break;
     case X1MinusBtn:
-        emit appendLogTextEdit("X1MinusBtn clicked");
+        emit buttonClickEvent("Xp,0x1");
         break;
     case BPlusBtn:
-        emit appendLogTextEdit("BPlusBtn clicked");
+        emit buttonClickEvent("beta,0x0");
         break;
     case BMinusBtn:
-        emit appendLogTextEdit("BMinusBtn clicked");
+        emit buttonClickEvent("beta,0x1");
         break;
     case GPlusBtn:
-        emit appendLogTextEdit("GPlusBtn clicked");
+        emit buttonClickEvent("gamma,0x1");
         break;
     case GMinusBtn:
-        emit appendLogTextEdit("GMinusBtn clicked");
+        emit buttonClickEvent("gamma,0x0");
         break;
     default:
         break;
@@ -120,13 +149,13 @@ void MotorDialog::on_homeingBtn_clicked()
     //        QMetaObject::invokeMethod(m_uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
     //                                  Q_RETURN_ARG(QString, res), Q_ARG(QString, "11111111111111"), Q_ARG(float, 5),
     //                                  Q_ARG(QString, "[DONE]\r\n"));
-    //        emit appendLogTextEdit(res);
+    //        emit buttonClickEvent(res);
 
     //        if (res.contains("[DONE]\r\n")) {
     //            QMetaObject::invokeMethod(m_uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
     //                                      Q_RETURN_ARG(QString, res), Q_ARG(QString, "2222222222"), Q_ARG(float, 5),
     //                                      Q_ARG(QString, "[DONE]\r\n"));
-    //            emit appendLogTextEdit(res);
+    //            emit buttonClickEvent(res);
     //        }
     //    }));
     //    _thread->detach();
@@ -166,7 +195,10 @@ void MotorDialog::on_readBtn_clicked() {}
 
 void MotorDialog::on_DCBtn_clicked() {}
 
-void MotorDialog::on_va1Btn_clicked() {}
+void MotorDialog::on_va1Btn_clicked()
+{
+
+}
 
 void MotorDialog::on_va2Btn_clicked() {}
 
@@ -210,5 +242,177 @@ void MotorDialog::showEvent(QShowEvent* event)
         m_animation->start();
     } else {
         m_animation->start();
+    }
+}
+
+
+QString MotorDialog::convertCmd(QString axis, QString value, QString& direction)
+{
+    QString plusStr;
+    QString plus_direction;
+    QString plus_hex1;
+    QString plus_hex2;
+    QString plus_hex3;
+    QString plus_hex4;
+
+    int plusCnt = 0;
+    float distance = 0;
+    float degree = 0;
+
+    plus_direction = direction;
+
+    if (axis.contains("Xs")) {
+        distance = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getXs() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x2")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("Y")) {
+        distance = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getY() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x3")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("Z")) {
+        distance = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getZ() * distance;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x4")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+
+    } else if (axis.contains("Xp")) {
+        distance = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getXp() * distance / 0.25;
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x3")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+    } else if (axis.contains("beta")) {
+        degree = value.toFloat();
+        plusCnt = -(int)CFG_PARSE.getBeta() * degree / 0.45;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x2")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+        } else {
+            plusStr = "";
+        }
+
+    } else if (axis.contains("gamma")) {
+        degree = value.toFloat();
+        plusCnt = (int)CFG_PARSE.getGamma() * degree / 0.55;
+
+        if (abs(plusCnt) != 0) {
+            plusStr = QString("%1").arg(plusCnt);
+            calPlusCntToHex(plusStr, plus_hex1, plus_hex2, plus_hex3, plus_hex4);
+            plusStr = QString("%1,%2,%3,%4,%5,%6]")
+                          .arg("SET_pcb[0x1,0x82,0x4")
+                          .arg(plus_direction)
+                          .arg(plus_hex4)
+                          .arg(plus_hex3)
+                          .arg(plus_hex2)
+                          .arg(plus_hex1);
+
+        } else {
+            plusStr = "";
+        }
+
+    } else {
+        plusStr = "";
+    }
+    return plusStr;
+}
+
+
+void MotorDialog::calPlusCntToHex(const QString& plusStr, QString& hex1, QString& hex2,
+                                 QString& hex3, QString& hex4)
+{
+    int hexStrLength;
+    int plusCnt = plusStr.toInt();
+//    if (plusCnt > 0) {
+//        direction = "0x1";
+//    } else {
+//        direction = "0x0";
+//    }
+
+    QString plusHexStr = QString::number(abs(plusCnt), 16).right(8);
+    hexStrLength = plusHexStr.length();
+    if (hexStrLength) {
+        for (int i = 0; i < 8 - hexStrLength; i++) {
+            plusHexStr.prepend("0");
+        }
+    }
+    hex1 = plusHexStr.mid(6, 2);
+    hex2 = plusHexStr.mid(4, 2);
+    hex3 = plusHexStr.mid(2, 2);
+    hex4 = plusHexStr.mid(0, 2);
+    hex1.prepend("0x");
+    hex2.prepend("0x");
+    hex3.prepend("0x");
+    hex4.prepend("0x");
+}
+
+void MotorDialog::on_SpeedCombobox_currentIndexChanged(int index)
+{
+    if(index == 0)
+    {
+        ui->stepValueSpinBox->setSingleStep(0.001);
+        ui->stepValueSpinBox->setMaximum(0.01);
+        ui->stepValueSpinBox->setValue(0.001);
+    }
+    else
+    {
+        ui->stepValueSpinBox->setSingleStep(0.1);
+        ui->stepValueSpinBox->setMaximum(1.0);
+        ui->stepValueSpinBox->setValue(0.1);
     }
 }

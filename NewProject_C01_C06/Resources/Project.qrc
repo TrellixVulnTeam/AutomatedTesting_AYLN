@@ -22,6 +22,7 @@
         <file>Debug/btncheckon.png</file>
         <file>Debug/JCiT.png</file>
         <file>Debug/dxd.png</file>
+        <file>Debug/logo.png</file>
     </qresource>
     <qresource prefix="/Qss">
         <file>Stylesheet/Mac.qss</file>
@@ -53,5 +54,7 @@
         <file>MainUI/click.png</file>
         <file>MainUI/loop.png</file>
         <file>MainUI/motor.png</file>
+        <file>Icons/logo.ico</file>
+        <file>Icons/logo.png</file>
     </qresource>
 </RCC>

@@ -11,9 +11,11 @@
 #include "ConfigParse.h"
 #include "Util.h"
 #include "MiniDumper.h"
+#include "HtmlDialog.h"
 
 int main(int argc, char* argv[])
 {
+    QApplication::setAttribute(Qt::AA_UseOpenGLES);
     QApplication app(argc, argv);
 
     SetUnhandledExceptionFilter(ExceptionFilter);
@@ -35,7 +37,7 @@ int main(int argc, char* argv[])
         QFont font("Arial,SimSun", 10);
         QFile qssFile(assfile);
 #endif
-        app.setWindowIcon(QIcon(":/Debug/Debug/JCiT.png"));
+        app.setWindowIcon(QIcon(":/Debug/Debug/logo.png"));
 
         app.setFont(font);
         QString qss;
@@ -66,6 +68,8 @@ int main(int argc, char* argv[])
         MainWindow w;
         w.resize(QSize(1560, 950));
         w.show();
+        //        HtmlDialog d;
+        //        d.show();
 
         return app.exec();
     }

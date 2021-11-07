@@ -81,19 +81,19 @@ void PositionDialog::onDataChanged(const QModelIndex& topLeft, const QModelIndex
         low = -10;
         high = 10;
     } else if (topLeft.row() < 8) {
-        low = -2;
+        low = -3;
         high = 5;
     } else if (topLeft.row() < 13) {
         low = -10;
         high = 10;
     } else if (topLeft.row() < 16) {
-        low = -2;
+        low = -3;
         high = 5;
     } else if (topLeft.row() < 21) {
         low = -10;
         high = 10;
     } else if (topLeft.row() < 24) {
-        low = -2;
+        low = -3;
         high = 5;
     }
 

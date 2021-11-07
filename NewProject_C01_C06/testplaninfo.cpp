@@ -51,10 +51,10 @@ void TestPlanInfo::generateHeadTitle(const std::vector<Items*>& tempList)
 {
 
     QString titleStr =
-        "SN,Result,Slot,StartTime,EndTime,Trial,User,SW_ver,SiteID,ProjectID,MachineID,Config,LotName,OperatorID,TestMode,MtcpState,MesState,FailMessage,";
-    QString lowLimitStr = "lowLimitStr,,,,,,,,,,,,,,,,,,";
-    QString uplowerLimitStr = "uplowerLimitStr,,,,,,,,,,,,,,,,,,";
-    QString UnitStr = "UnitStr,,,,,,,,,,,,,,,,,,";
+        "SN,Result,Slot,StartTime,EndTime,TestTime(s),Trial,User,SW_ver,SiteID,ProjectID,MachineID,Config,LotName,OperatorID,TestMode,MtcpState,MesState,FailMessage,";
+    QString lowLimitStr = "lowLimitStr,,,,,,,,,,,,,,,,,,,";
+    QString uplowerLimitStr = "uplowerLimitStr,,,,,,,,,,,,,,,,,,,";
+    QString UnitStr = "UnitStr,,,,,,,,,,,,,,,,,,,";
 
     for (int i = 0; i < tempList.size(); i++) {
         Items* tempItem = tempList[i];

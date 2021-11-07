@@ -18,6 +18,10 @@ TestAction::TestAction(const int& num, const std::shared_ptr<TestPlanInfo>& temp
     MLOG_INFO("Creat a new TestAction");
 
     isReady = false;
+    if(isDebug)
+    {
+        isReady = true;
+    }
 #ifdef LzgDebug
     isReady = true;  // debug
     isFlowEnd = true;
@@ -149,9 +153,10 @@ void TestAction::run()
         QApplication::applicationDirPath() + "/Config/" + (lotName_ST.isEmpty() ? "Lot001" : lotName_ST) + ".txt";
 
     try {
-        startTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+        startTime = QDateTime::currentDateTime().toString("MM/dd/yyyy hh:mm:ss.zzz");
+        st = mlUtil_getCurrentTime();
 
-        if (!m_isPosition_O) {
+        if (!m_isPosition_O && !isDebug) {
             isReady = false;
             errorMessage_H = "pls. reset the fixture!";
             errorCode_H = "1009";
@@ -159,11 +164,10 @@ void TestAction::run()
             emit showWarning(tr("pls reset the fixture !"));
         }
 
-        //        onTakePhotos();
-        //        QThread::msleep(1200);
+                onTakePhotos();
 
         for (int i = 0; i < CFG_PARSE.getGroupOrderVec().size(); i++) {
-            if (m_loopStopFlag) {
+            if (m_loopStopFlag && !isDebug) {
                 m_isPosition_O = false;
                 break;
             }
@@ -182,7 +186,7 @@ void TestAction::run()
 
             m_isSendOnly = false;
             for (int j = 0; j < tempFlowItemList.size(); j++) {
-                if (m_loopStopFlag) {
+                if (m_loopStopFlag && !isDebug) {
                     m_isPosition_O = false;
                     break;
                 }
@@ -202,6 +206,11 @@ void TestAction::run()
 
                     if (tempItem->ClassType == "communication") {
 
+                        if(isDebug)
+                        {
+                            QThread::msleep(500);
+                            continue;
+                        }
                         QString cmdStr;
                         if (tempItem->Ref.contains("Uart")) {
                             emit sendDataToServer(QString("Vlog#Test cell %1#%2$")
@@ -435,7 +444,7 @@ void TestAction::run()
         }
 
         // judge the result
-        if (m_loopStopFlag) {
+        if (m_loopStopFlag && !isDebug) {
             testResult = TEST_FAIL;
             testResultStr = "FAIL";
         } else {
@@ -447,7 +456,8 @@ void TestAction::run()
             }
         }
 
-        endTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+        endTime = QDateTime::currentDateTime().toString("MM/dd/yyyy hh:mm:ss.zzz");
+        TestTime = QString("%1").arg(mlUtil_getCurrentTime() - st);
         //    emit sendDataToServer("TestFinished!$");
 
         FileTool::writeContentWithPath("", pivotStr, QString::fromStdString(m_mtcpFilePath), "/PivotReport.csv");
@@ -1129,9 +1139,9 @@ void TestAction::saveUnitCSVData(const QString& itemSn, const QString& result, c
     QString currentInfo = trial_ST + "," + user_ST + "," + uiInfo + "," + mtcpState_ST + "," + mesState_ST;
     currentInfo = currentInfo.replace("TConfig", config_ST);
 
-    QString testStopTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
-    QString Conents = "\n" + itemSn + "," + result + "," + slot + "," + startTime + "," + endTime + "," + currentInfo
-                      + "," + failMsg + "," + itemContents;
+//    QString testStopTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+    QString Conents = "\n" + itemSn + "," + result + "," + slot + "," + startTime + "," + endTime + "," + TestTime + "," + currentInfo + ","
+                      + failMsg + "," + itemContents;
 
     if (result == "PASS") {
         result_R = "1";
@@ -1139,7 +1149,7 @@ void TestAction::saveUnitCSVData(const QString& itemSn, const QString& result, c
         result_R = "0";
     }
 
-    csvInfo_R = itemSn + "," + result + "," + slot + "," + testStopTime + "," + testStopTime + "," + currentInfo;
+    csvInfo_R = itemSn + "," + result + "," + slot + "," + startTime + "," + endTime + "," + TestTime + "," + currentInfo;
     failItems_R = failMsg;
 
     testItems_R = itemContents;
@@ -1959,20 +1969,35 @@ QString TestAction::convertCmd(QString axis, QString value)
 
 void TestAction::onTakePhotos()
 {
-    QString tmp_cmd = "SET_pcb[0x1,0x82,0x41,0x3,0x0,0x0,0x0,0x12]";
+    emit sendDataToServer(
+        QString("Vlog#Test cell %1#%2$").arg(this->unitNum + offsetNum).arg("take photos"));
+
+    QString cmd_takePhotos = "SET_pcb[0x1,0x82,0x41,0x3,0x0,0x0,0x0,0x12]";
+    QString cmd_motorRun = "SET_pcb[0x1,0x82,0x41,0x3,0x0,0x36,0xee,0x80]";
+    QString cmd_motorStop = "SET_pcb[0x1,0x84,0x41,0,0,0,0,0]";
+
+    QObject* deviceObject_Uart1 =
+        (QObject*)m_devices->deviceDic[QString("TEST_Uart%1%2").arg(unitNum + offsetNum).arg("1")].value<void*>();
+
     QObject* deviceObject_Uart2 =
         (QObject*)m_devices->deviceDic[QString("TEST_Uart%1%2").arg(unitNum + offsetNum).arg("2")].value<void*>();
 
     QString response;
+    QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_motorRun), Q_ARG(float, 5), Q_ARG(QString, "[DONE]\r\n"));
 
+    MLOG_INFO(QString("DD motor start-->response:%1").arg(response));
+    QThread::msleep(1000);
     QMetaObject::invokeMethod(deviceObject_Uart2, "sendDataWithResponse", Qt::BlockingQueuedConnection,
-                              Q_RETURN_ARG(QString, response), Q_ARG(QString, tmp_cmd), Q_ARG(float, 5),
-                              Q_ARG(QString, "[DONE]\r\n"));
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_takePhotos), Q_ARG(float, 5), Q_ARG(QString, "[DONE]\r\n"));
 
-    QThread::msleep(100);
-
-    emit sendDataToServer(QString("GR$"));
     MLOG_INFO(QString("finish take photos-->response:%1").arg(response));
+    QThread::msleep(100);
+    QMetaObject::invokeMethod(deviceObject_Uart1, "sendDataWithResponse", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(QString, response), Q_ARG(QString, cmd_motorStop), Q_ARG(float, 5), Q_ARG(QString, "[DONE]\r\n"));
+
+    emit sendDataToServer(QString("GR#%1$").arg(this->itemSn));
+    MLOG_INFO(QString("DD motor stop-->response:%1").arg(response));
 }
 
 double TestAction::getComp_Factor(QString groupName)
