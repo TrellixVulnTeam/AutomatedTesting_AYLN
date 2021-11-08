@@ -17,6 +17,7 @@ from datetime import datetime
 import shutil
 import zmq
 import json
+import argparse
 
 class DiffFile:
     """文件比较类"""
@@ -81,9 +82,9 @@ class DiffFile:
 
 
 class Watcher(object):
-    def __init__(self, path, isAllowChange=False):
+    def __init__(self, path):
         self.path = path
-        self.isAllowChange = isAllowChange
+        self.zmqReq = ZmqReqProtocol()
 
         self.changeLogPath = os.path.dirname(__file__) + os.sep + 'ChangeLog'
         if not os.path.exists(self.changeLogPath):
@@ -94,7 +95,12 @@ class Watcher(object):
             self.csvHandel.write('Time,ChangeLog\n')
             self.csvHandel.flush()
 
-        self.makeTranscript()
+        while True:
+            try:
+                self.makeTranscript()
+            except Exception as e:
+                self.zmqReq.sendString([], "File Watcher Err: {}, Advised to restart the test software.".format(str(e)))
+            time.sleep(20)
 
     def makeTranscript(self):
         '''
@@ -121,9 +127,19 @@ class Watcher(object):
                 htmlPath = self.changeLogPath + os.sep + currT + '.html'
                 isChanged = DiffFile.compare_file(self.path, transcriptPath + os.sep + wfileNameWithSuffix, htmlPath)
                 if isChanged:
-                    if self.isAllowChange:
+                    res = self.zmqReq.sendString([self.path], "")
+                    if not res['ErrorStr'] == '':
+                        isAllowChange = False
+                    elif res['Result'] == True:
+                        isAllowChange = True
+                    elif res['Result'] == False:
+                        isAllowChange = False
+                    else:
+                        isAllowChange = False
+
+                    if isAllowChange:
                         features = (transcriptPath + os.sep + wfileNameWithSuffix).split('.')
-                        backupName = features[0] + '_backup_' + currT + '.' + features[1]
+                        backupName = features[0] + '_' + currT + '.' + 'backup'
                         os.rename(transcriptPath + os.sep + wfileNameWithSuffix, backupName)
                         shutil.copy(self.path, transcriptPath + os.sep + wfileNameWithSuffix)
                         self.csvHandel.write('{},It is detected that {} has been modified. Modification is allowed.\n'.format(currT, self.path))
@@ -148,6 +164,9 @@ class Watcher(object):
 
                 dstFileList = os.listdir(dstFolderPath)
                 srcFileList = os.listdir(self.path)
+                tempDic = {}
+                htmlPath = ''
+                hList = []
                 for file in srcFileList:
                     if file not in dstFileList:
                         _src = self.path + os.sep + file
@@ -163,23 +182,40 @@ class Watcher(object):
                         htmlPath = self.changeLogPath + os.sep + currT + '.html'
                         isChanged = DiffFile.compare_file(_src, _dst, htmlPath)
                         if isChanged:
-                            if self.isAllowChange:
-                                features = _dst.split('.')
-                                backupName = features[0] + '_backup_' + currT + '.' + features[1]
-                                os.rename(_dst, backupName)
-                                shutil.copy(_src, _dst)
-                                self.csvHandel.write(
-                                    '{},It is detected that {} has been modified. Modification is allowed.\n'.format(
-                                        currT, _src))
-                                self.csvHandel.flush()
-                            else:
-                                os.remove(htmlPath)
-                                shutil.copy(_dst, _src)
-                                self.csvHandel.write(
-                                    '{},It is detected that {} has been modified. Modification is not allowed. Restoring.\n'.format(
-                                        currT, _src))
-                                self.csvHandel.flush()
+                            tempDic.setdefault(_src, _dst)
+                            hList.append(htmlPath)
 
+                if tempDic:
+                    res = self.zmqReq.sendString(list(tempDic.keys()), "")
+                    if not res['ErrorStr'] == '':
+                        isAllowChange = False
+                    elif res['Result'] == True:
+                        isAllowChange = True
+                    elif res['Result'] == False:
+                        isAllowChange = False
+                    else:
+                        isAllowChange = False
+
+                    for _src, _dst in tempDic.items():
+                        if isAllowChange:
+                            features = _dst.split('.')
+                            backupName = features[0] + '_' + currT + '.' + 'backup'
+                            os.rename(_dst, backupName)
+                            shutil.copy(_src, _dst)
+                            self.csvHandel.write(
+                                '{},It is detected that {} has been modified. Modification is allowed.\n'.format(
+                                    currT, _src))
+                            self.csvHandel.flush()
+                        else:
+                            shutil.copy(_dst, _src)
+                            self.csvHandel.write(
+                                '{},It is detected that {} has been modified. Modification is not allowed. Restoring.\n'.format(
+                                    currT, _src))
+                            self.csvHandel.flush()
+
+                    if not isAllowChange:
+                        for p in hList:
+                            os.remove(p)
 
     def __del__(self):
         self.csvHandel.close()
@@ -197,27 +233,22 @@ class ZmqReqProtocol(object):
         # socket.setsockopt( zmq.RCVTIMEO, 4000 )   #设置超时
         self.socket.connect(handle)
 
-    def sendString(self, changeList):
-        try:
-            cmd = {"ChangeList": changeList, "ErrorStr": ""}
-            self.socket.send_string(json.dumps(cmd))
-            data = self.socket.recv()
-            ret = str(data, encoding="utf-8")
-            dic = json.loads(ret)
-            print(dic)
-        except Exception as e:
-            print(str(e))
+    def sendString(self, changeList, errStr):
+        cmd = {"ChangeList": changeList, "ErrorStr": errStr}
+        self.socket.send_string(json.dumps(cmd))
+        data = self.socket.recv()
+        ret = str(data, encoding="utf-8")
+        dic = json.loads(ret)
+        return dic
 
     def __del__(self):
         self.socket.close()
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog="package")
+    parser.add_argument('-p', '--path', help="需要监控的文件或文件夹", required=True, type=str)
+    args = parser.parse_args()
 
-    # watcher = Watcher(r'C:\Users\Zhigen\Desktop\ChangeLog.csv')
-    # watcher = Watcher('C:\\Users\\Zhigen\\Desktop\\test\\', True)
+    print(args)
 
-    zmqReq = ZmqReqProtocol()
-
-    list = [r'C:\Users\Zhigen\Desktop\ChangeLog\2021-11-05-20-44-39.html',
-            r'C:\Users\Zhigen\Desktop\ChangeLog\2021-11-05-20-57-55.html']
-    zmqReq.sendString(list)
+    watcher = Watcher(args.path)

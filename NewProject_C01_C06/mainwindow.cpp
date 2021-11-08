@@ -158,7 +158,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     m_startLoadForm->close();
 
     m_htmlDialog = new HtmlDialog(m_userManagerDialog->getUserSetting());
-    m_htmlDialog->show();
+    m_process = std::shared_ptr<QProcess>(new QProcess);
+    LOG_INFO("[Main] Start watcher files");
+    const QString appDir = QApplication::applicationDirPath();
+    const QString pyPath = appDir + "/Python/python36/python.exe";
+    const QString pyFilePath = appDir + "/Python/FileWatcher.py";
+    const QString watchPath = appDir + "/Config/Comp_Factor";
+    const QString cmd = pyPath + " " + pyFilePath + " -p " + watchPath;
+    LOG_INFO("[Main] %s", cmd.toStdString().c_str());
+    m_process->start(cmd);
 
     //    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
 }
@@ -659,6 +667,10 @@ MainWindow::~MainWindow()
         TestAction* testaction = testactionList.at(i);
         delete testaction;
         testaction = NULL;
+    }
+
+    if (nullptr != m_process) {
+        m_process->kill();
     }
 
     dcReleaseModule();

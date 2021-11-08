@@ -134,6 +134,7 @@ private:
     PreferencesDialog* m_preferencesDialog = NULL;
     QPropertyAnimation* m_animation = NULL;
     DynamicMtcp* m_mtcp = NULL;
+    std::shared_ptr<QProcess> m_process = nullptr;
 
     QItemSelectionModel* theSelection;
     QList<Items*> testItemList;
