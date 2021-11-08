@@ -515,6 +515,7 @@ QPushButton:hover{
     <addaction name="actionPosition"/>
     <addaction name="actionLoopTest"/>
     <addaction name="actionLoadProfile"/>
+    <addaction name="actionWatcherList"/>
     <addaction name="actionCommunicationTool"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -571,6 +572,11 @@ QPushButton:hover{
   <action name="actionPosition">
    <property name="text">
     <string>Position</string>
+   </property>
+  </action>
+  <action name="actionWatcherList">
+   <property name="text">
+    <string>WatcherList</string>
    </property>
   </action>
  </widget>

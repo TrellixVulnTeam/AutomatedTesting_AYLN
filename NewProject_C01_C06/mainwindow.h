@@ -90,6 +90,7 @@ private slots:
     void onPositionAction();
     void onLoadProfileAction();
     void onPreferencesAction();
+    void onWatcherListAction();
     void ononCommunicationToolAction();
     void onAboutAction();
     void onUserManagerAction();

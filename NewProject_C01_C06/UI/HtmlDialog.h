@@ -26,6 +26,7 @@ public:
 signals:
     void showWaring(const QString& msg);
     void showFileWatcherDialig(const QJsonArray& jsonArr, bool* isok);
+    void watcherFileTrigger();
 
 private slots:
     void onLeftBtnClicked();
@@ -38,6 +39,7 @@ private:
     void paintEvent(QPaintEvent* event) override;
     void enterEvent(QEvent* event) override;
     void leaveEvent(QEvent* event) override;
+    void showEvent(QShowEvent*);
 
 private:
     Ui::HtmlDialog* ui;
@@ -45,10 +47,11 @@ private:
     QWebEngineView* m_webView = NULL;
     QPushButton* m_leftBtn = NULL;
     QPushButton* m_rightBtn = NULL;
-
     DynamicZmqRep* m_zmqRep = NULL;
-
     QSettings* m_setting = NULL;
+
+    std::vector<std::string> m_files;
+    int m_currIdx = 0;
 };
 
 #endif  // HTMLDIALOG_H

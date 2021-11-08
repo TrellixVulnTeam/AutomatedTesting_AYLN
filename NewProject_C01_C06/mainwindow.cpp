@@ -109,6 +109,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionUserManager, &QAction::triggered, this, &MainWindow::onUserManagerAction);
     connect(ui->actionLoadProfile, &QAction::triggered, this, &MainWindow::onLoadProfileAction);
     connect(ui->actionPerference, &QAction::triggered, this, &MainWindow::onPreferencesAction);
+    connect(ui->actionWatcherList, &QAction::triggered, this, &MainWindow::onWatcherListAction);
     connect(ui->actionCommunicationTool, &QAction::triggered, this, &MainWindow::ononCommunicationToolAction);
     connect(this, &MainWindow::mtcpConnectedStatus, this, &MainWindow::onMtcpConnectedStatus);
 
@@ -131,8 +132,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     timer = new MyTimer();
     connect(timer, SIGNAL(signalUpdateTimeUI()), this, SLOT(updateTimeUI()));
 
+    if (CFG_PARSE.getPid() > 0)
+        Util::KillProcess(CFG_PARSE.getPid());
+
+    m_htmlDialog = new HtmlDialog(m_userManagerDialog->getUserSetting());
+    m_process = std::shared_ptr<QProcess>(new QProcess);
+    LOG_INFO("[Main] Start watcher files");
+    const QString appDir = QApplication::applicationDirPath();
+    const QString pyPath = appDir + "/Python/python36/python.exe";
+    const QString pyFilePath = appDir + "/Python/FileWatcher.pyc";
+    const QString watchPath = appDir + "/Config/Comp_Factor";
+    const QString cmd = pyPath + " " + pyFilePath + " -p " + watchPath;
+    LOG_INFO("[Main] %s", cmd.toStdString().c_str());
+    m_process->start(cmd);
+    CFG_PARSE.setTestInfo(KPID, (int)m_process->processId());
+
     for (int i = 0; i < CFG_PARSE.getUnitCount(); i++) {
         TestAction* testaction = new TestAction(i, m_testplan_tool, m_testplan_tool_flow, positionStr);
+        connect(m_htmlDialog, &HtmlDialog::watcherFileTrigger, testaction, &TestAction::onWatcherFileTrigger);
         connect(testaction, &TestAction::updateLogViewUI, this, &MainWindow::onUpdateLogViewUI);
         connect(testaction, SIGNAL(flushUiWithRow(const Items*, int, int, int)), this,
                 SLOT(flushMainUiTable(const Items*, int, int, int)));
@@ -156,17 +173,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         testactionList.append(testaction);
     }
     m_startLoadForm->close();
-
-    m_htmlDialog = new HtmlDialog(m_userManagerDialog->getUserSetting());
-    m_process = std::shared_ptr<QProcess>(new QProcess);
-    LOG_INFO("[Main] Start watcher files");
-    const QString appDir = QApplication::applicationDirPath();
-    const QString pyPath = appDir + "/Python/python36/python.exe";
-    const QString pyFilePath = appDir + "/Python/FileWatcher.py";
-    const QString watchPath = appDir + "/Config/Comp_Factor";
-    const QString cmd = pyPath + " " + pyFilePath + " -p " + watchPath;
-    LOG_INFO("[Main] %s", cmd.toStdString().c_str());
-    m_process->start(cmd);
 
     //    QTimer::singleShot(1000, this, [&]() { m_loginDialog->exec(); });
 }
@@ -672,6 +678,7 @@ MainWindow::~MainWindow()
     if (nullptr != m_process) {
         m_process->kill();
     }
+    CFG_PARSE.setTestInfo(KPID, -1);
 
     dcReleaseModule();
     dcReleaseSystem();
@@ -805,6 +812,12 @@ void MainWindow::onPreferencesAction()
         connect(m_preferencesDialog, &PreferencesDialog::mtcpStatusChanged, this, &MainWindow::onMtcpStatusChanged);
     }
     m_preferencesDialog->exec();
+}
+
+void MainWindow::onWatcherListAction()
+{
+    if (NULL != m_htmlDialog)
+        m_htmlDialog->exec();
 }
 
 void MainWindow::onMtcpStatusChanged(bool status)
@@ -942,6 +955,7 @@ void MainWindow::updatePermissions()
         ui->actionLoadProfile->setEnabled(false);
         ui->actionLoopTest->setEnabled(false);
         ui->actionPosition->setEnabled(false);
+        ui->actionWatcherList->setEnabled(false);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::Operator:
@@ -955,6 +969,7 @@ void MainWindow::updatePermissions()
         ui->actionLoadProfile->setEnabled(false);
         ui->actionLoopTest->setEnabled(false);
         ui->actionPosition->setEnabled(false);
+        ui->actionWatcherList->setEnabled(false);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::TestE:
@@ -968,6 +983,7 @@ void MainWindow::updatePermissions()
         ui->actionLoadProfile->setEnabled(true);
         ui->actionLoopTest->setEnabled(true);
         ui->actionPosition->setEnabled(true);
+        ui->actionWatcherList->setEnabled(true);
         ui->actionCommunicationTool->setEnabled(false);
         break;
     case User::Developer:
@@ -981,6 +997,7 @@ void MainWindow::updatePermissions()
         ui->actionLoadProfile->setEnabled(true);
         ui->actionLoopTest->setEnabled(true);
         ui->actionPosition->setEnabled(true);
+        ui->actionWatcherList->setEnabled(true);
         ui->actionCommunicationTool->setEnabled(true);
         break;
     default:

@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include "FileWatcherDialog.h"
+#include "Util.h"
 
 const int BtnW = 35;
 const QString ZMQResultStr = "Result";
@@ -16,6 +17,8 @@ HtmlDialog::HtmlDialog(QSettings* setting, QWidget* parent)
     : m_setting(setting), QDialog(parent), ui(new Ui::HtmlDialog)
 {
     ui->setupUi(this);
+    setWindowTitle("Watcher ChangeList");
+    ui->label->clear();
     Qt::WindowFlags windowFlag = Qt::Dialog;
     windowFlag |= Qt::WindowMaximizeButtonHint;
     windowFlag |= Qt::WindowCloseButtonHint;
@@ -26,8 +29,6 @@ HtmlDialog::HtmlDialog(QSettings* setting, QWidget* parent)
             Qt::BlockingQueuedConnection);
 
     m_webView = new QWebEngineView(this);
-    QUrl baseUrl = "file:///C:/Users/Zhigen/Desktop/ChangeLog/2021-11-05-20-57-55.html";
-    m_webView->setUrl(baseUrl);
     ui->layout->addWidget(m_webView);
 
     m_leftBtn = new QPushButton(this);
@@ -56,6 +57,8 @@ HtmlDialog::HtmlDialog(QSettings* setting, QWidget* parent)
 
 HtmlDialog::~HtmlDialog()
 {
+    if (NULL != m_zmqRep)
+        m_zmqRep->destroy();
     delete ui;
 }
 
@@ -71,6 +74,7 @@ std::string HtmlDialog::zmqRepCallBack(void* buf, long len, void* context)
             QJsonDocument doc = QJsonDocument::fromVariant(cmdMap);
             QByteArray array = doc.toJson();
             QString str(array);
+            emit pThis->watcherFileTrigger();
             return str.toStdString();
         }
 
@@ -84,6 +88,7 @@ std::string HtmlDialog::zmqRepCallBack(void* buf, long len, void* context)
             QJsonDocument doc = QJsonDocument::fromVariant(cmdMap);
             QByteArray array = doc.toJson();
             QString str(array);
+            emit pThis->watcherFileTrigger();
             return str.toStdString();
         }
 
@@ -98,6 +103,7 @@ std::string HtmlDialog::zmqRepCallBack(void* buf, long len, void* context)
             QJsonDocument doc = QJsonDocument::fromVariant(cmdMap);
             QByteArray array = doc.toJson();
             QString str(array);
+            emit pThis->watcherFileTrigger();
             return str.toStdString();
         }
 
@@ -109,6 +115,7 @@ std::string HtmlDialog::zmqRepCallBack(void* buf, long len, void* context)
         QJsonDocument doc = QJsonDocument::fromVariant(cmdMap);
         QByteArray array = doc.toJson();
         QString str(array);
+        emit pThis->watcherFileTrigger();
         return str.toStdString();
     }
     catch (...) {
@@ -117,6 +124,7 @@ std::string HtmlDialog::zmqRepCallBack(void* buf, long len, void* context)
         QJsonDocument doc = QJsonDocument::fromVariant(cmdMap);
         QByteArray array = doc.toJson();
         QString str(array);
+        emit pThis->watcherFileTrigger();
         return str.toStdString();
     }
 }
@@ -146,14 +154,27 @@ void HtmlDialog::leaveEvent(QEvent*)
 
 void HtmlDialog::onLeftBtnClicked()
 {
-    QUrl baseUrl = "file:///C:/Users/Zhigen/Desktop/ChangeLog/2021-11-05-20-44-39.html";
+    if (m_files.size() < 1)
+        return;
+
+    m_currIdx--;
+    if (m_currIdx < 0)
+        m_currIdx = m_files.size() - 1;
+    QUrl baseUrl = "file:///" + QString::fromStdString(m_files.at(m_currIdx));
     m_webView->setUrl(baseUrl);
+    ui->label->setText(baseUrl.toString());
 }
 
 void HtmlDialog::onRrightBtnClicked()
 {
-    QUrl baseUrl = "file:///C:/Users/Zhigen/Desktop/ChangeLog/2021-11-05-20-57-55.html";
+    if (m_files.size() < 1)
+        return;
+    m_currIdx++;
+    if (m_currIdx > m_files.size() - 1)
+        m_currIdx = 0;
+    QUrl baseUrl = "file:///" + QString::fromStdString(m_files.at(m_currIdx));
     m_webView->setUrl(baseUrl);
+    ui->label->setText(baseUrl.toString());
 }
 
 void HtmlDialog::onShowWaring(const QString& msg)
@@ -165,4 +186,24 @@ void HtmlDialog::onShowFileWatcherDialig(const QJsonArray& jsonArr, bool* isok)
 {
     FileWatcherDialog fDialog(jsonArr, m_setting, isok);
     fDialog.exec();
+}
+
+void HtmlDialog::showEvent(QShowEvent*)
+{
+    const QString logPath = "C:/Transcript/ChangeLog";
+    if (Util::IsDirExist(logPath.toStdString())) {
+        std::vector<std::string> _fs;
+        Util::GetFiles(logPath.toStdString(), _fs, ".html");
+
+        if (m_files.size() == _fs.size()) {
+            // pass
+        } else {
+            m_currIdx = 0;
+        }
+        m_files = _fs;
+
+        QUrl baseUrl = "file:///" + QString::fromStdString(m_files.at(m_currIdx));
+        m_webView->setUrl(baseUrl);
+        ui->label->setText(baseUrl.toString());
+    }
 }

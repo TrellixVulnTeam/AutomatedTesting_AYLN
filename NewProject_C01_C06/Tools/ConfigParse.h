@@ -50,6 +50,8 @@ static std::string KLotName = "LotName";
 static std::string KRMS = "RMS";
 static std::string KMes = "MES";
 
+static std::string KPID = "WatcherPID";
+
 struct DeviceInfo
 {
     DeviceInfo()
@@ -317,6 +319,11 @@ public:
         return m_rms;
     }
 
+    int getPid() const
+    {
+        return m_pid;
+    }
+
 private:
     void procError(const std::string& nodeStr);
 
@@ -376,6 +383,7 @@ private:
     int m_xs = 5000;
     int m_y = 5000;
     int m_z = 5000;
+    int m_pid = -1;
     double m_timeStep = 0.0000016;
     double m_rms = 0.0;
 

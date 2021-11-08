@@ -126,6 +126,7 @@ public slots:
     void onStartProcess(const QString& cmd);
     void onTakePhotos();
     void onMotorBtnClicked();
+    void onWatcherFileTrigger();
 
 private:
     bool openCylinder();

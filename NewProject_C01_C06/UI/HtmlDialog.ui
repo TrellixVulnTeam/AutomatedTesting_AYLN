@@ -14,16 +14,26 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(255, 255, 255);</string>
+   <string notr="true"/>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout" rowstretch="1,1,0" columnstretch="0,0" columnminimumwidth="0,0">
-     <item row="0" column="0" rowspan="2" colspan="2">
-      <layout class="QVBoxLayout" name="layout"/>
+    <layout class="QGridLayout" name="gridLayout" rowstretch="1,10" columnstretch="0,0">
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <family>SimSun-ExtB</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Html Path:</string>
+       </property>
+      </widget>
      </item>
-     <item row="2" column="0" colspan="2">
-      <layout class="QHBoxLayout" name="horizontalLayout"/>
+     <item row="1" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="layout"/>
      </item>
     </layout>
    </item>

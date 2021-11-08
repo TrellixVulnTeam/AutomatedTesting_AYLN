@@ -45,6 +45,12 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         m_logPath = _node.Value<std::string>();
         Util::MakeNDir(m_logPath);
 
+        _node = configurationNode.Child(KPID);
+        if (_node.isValid())
+            m_pid = _node.Value<int>();
+        else
+            m_pid = -1;
+
 #ifdef Q_OS_MAC
         QString appPath = QApplication::applicationDirPath().replace("MacOS", "Resources/");
 #else
@@ -90,6 +96,7 @@ void ConfigParse::prestrain(const std::string& pathOfUIConf)
         LOG_INFO("[Main] Position: %s", m_positionCsvPath.c_str());
         LOG_INFO("[Main] LotName: %s", m_lotName.c_str());
         LOG_INFO("[Main] RMS: %f", m_rms);
+        LOG_INFO("[Main] PID: %d", m_pid);
 
         XmlNode device = configurationNode.Child(KDevice);
         if (device.isValid()) {
@@ -261,6 +268,9 @@ void ConfigParse::setTestInfo(const std::string& node, const int value)
         } else if (node == KZ) {
             m_z = value;
             LOG_INFO("[Main] Change Z to: %d", m_unitCount);
+        } else if (node == KPID) {
+            m_pid = value;
+            LOG_INFO("[Main] Change PID to: %d", m_pid);
         }
     } else {
         procError(KConfiguration);

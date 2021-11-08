@@ -29,6 +29,8 @@ public:
 
     static std::string GetFileExt(const char* path);  //获取文件的扩展名
 
+    static void GetFiles(const std::string& path, std::vector<std::string>& files, const std::string& filterStr = "");
+
     static char* basename(const char* path);
 
     static int GetPid();  //获取pid

@@ -7,6 +7,7 @@ FileWatcherDialog::FileWatcherDialog(const QJsonArray& fileList, QSettings* sett
     : m_setting(setting), m_isok(isok), QDialog(parent), ui(new Ui::FileWatcherDialog)
 {
     ui->setupUi(this);
+    setWindowTitle("Watcher");
     ui->passwordLine->setEchoMode(QLineEdit::Password);
 
     ui->tableWidget->setColumnWidth(0, this->width());
